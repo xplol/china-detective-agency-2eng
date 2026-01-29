@@ -26,6 +26,8 @@ import {
 } from "lucide-react";
 
 import { useLanguage } from "@/contexts/LanguageContext";
+import SEO from "@/components/SEO";
+import StructuredData from "@/components/StructuredData";
 
 export default function Home() {
   const { language, setLanguage, t } = useLanguage();
@@ -38,6 +40,8 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <SEO />
+      <StructuredData />
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
         <div className="container mx-auto px-6 py-4">
