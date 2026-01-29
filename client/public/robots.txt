@@ -1,8 +1,20 @@
+# Robots.txt for www.xplol.cn
+# Professional Private Investigation Services in China
+# English-focused Site
+
+# Allow all search engines to crawl the entire site
 User-agent: *
 Allow: /
 
-# Sitemap
+# Sitemap location
 Sitemap: https://www.xplol.cn/sitemap.xml
 
-# Crawl-delay
+# Related site (Chinese-English bilingual)
+# Sitemap: https://www.spy007.top/sitemap.xml
+
+# Crawl-delay for polite crawling
 Crawl-delay: 1
+
+# Website: https://www.xplol.cn
+# Partner site: https://www.spy007.top
+# Last updated: 2026-01-29
