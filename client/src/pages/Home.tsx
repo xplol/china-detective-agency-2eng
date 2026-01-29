@@ -452,7 +452,7 @@ export default function Home() {
                     className="text-muted-foreground hover:text-accent transition-colors flex items-center gap-2"
                   >
                     <Globe className="w-4 h-4" />
-                    <span>{language === "zh" ? "访问中文站：spy007.top" : "Visit Chinese Site: spy007.top"}</span>
+                    <span>{language === "zh" ? "联系更多侦探: www.spy007.top" : "Contact More Detectives: www.spy007.top"}</span>
                   </a>
                 </div>
               </div>
