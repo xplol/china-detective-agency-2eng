@@ -392,7 +392,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="bg-background/95 border-t border-border/50 py-12">
         <div className="container mx-auto px-6">
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center">
