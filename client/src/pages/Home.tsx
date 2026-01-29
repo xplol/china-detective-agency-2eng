@@ -444,6 +444,17 @@ export default function Home() {
                 <a href="#" className="text-muted-foreground hover:text-accent transition-colors block">{t("footer.privacy")}</a>
                 <a href="#" className="text-muted-foreground hover:text-accent transition-colors block">{t("footer.terms")}</a>
                 <a href="#" className="text-muted-foreground hover:text-accent transition-colors block">{t("footer.disclaimer")}</a>
+                <div className="pt-4 mt-4 border-t border-border/50">
+                  <a 
+                    href="https://www.spy007.top/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-accent transition-colors flex items-center gap-2"
+                  >
+                    <Globe className="w-4 h-4" />
+                    <span>{language === "zh" ? "访问中文站：spy007.top" : "Visit Chinese Site: spy007.top"}</span>
+                  </a>
+                </div>
               </div>
             </div>
           </div>
