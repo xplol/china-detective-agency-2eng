@@ -4,11 +4,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
+
 import { 
   Heart, 
   Building2, 
@@ -28,31 +24,13 @@ import {
   Send,
   Globe
 } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
+
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Home() {
   const { language, setLanguage, t } = useLanguage();
   
-  const [formData, setFormData] = useState({
-    name: "",
-    phone: "",
-    email: "",
-    service: "",
-    message: "",
-    privacy: false
-  });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.privacy) {
-      toast.error(language === "zh" ? "请同意隐私政策" : "Please agree to the privacy policy");
-      return;
-    }
-    toast.success(t("contact.form.success"));
-    setFormData({ name: "", phone: "", email: "", service: "", message: "", privacy: false });
-  };
 
   const scrollToSection = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
@@ -294,8 +272,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-12">
-            {/* Contact Info */}
+          <div className="max-w-4xl mx-auto">
             <div className="space-y-6">
               <h3 className="text-2xl font-bold mb-6">{t("contact.methods")}</h3>
               
@@ -404,99 +381,6 @@ export default function Home() {
                 </CardContent>
               </Card>
             </div>
-
-            {/* Contact Form */}
-            <Card className="glass-card">
-              <CardContent className="p-8">
-                <h3 className="text-2xl font-bold mb-6">{t("contact.form.title")}</h3>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div>
-                    <Label htmlFor="name">{t("contact.form.name")}</Label>
-                    <Input
-                      id="name"
-                      placeholder={t("contact.form.name.placeholder")}
-                      value={formData.name}
-                      onChange={(e) => setFormData({...formData, name: e.target.value})}
-                      required
-                      className="bg-background/50"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="phone">{t("contact.form.phone")}</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder={t("contact.form.phone.placeholder")}
-                      value={formData.phone}
-                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                      required
-                      className="bg-background/50"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="email">{t("contact.form.email")}</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder={t("contact.form.email.placeholder")}
-                      value={formData.email}
-                      onChange={(e) => setFormData({...formData, email: e.target.value})}
-                      className="bg-background/50"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="service">{t("contact.form.service")}</Label>
-                    <Select value={formData.service} onValueChange={(value) => setFormData({...formData, service: value})}>
-                      <SelectTrigger className="bg-background/50">
-                        <SelectValue placeholder={t("contact.form.service.placeholder")} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="marriage">{t("contact.form.service.marriage")}</SelectItem>
-                        <SelectItem value="business">{t("contact.form.service.business")}</SelectItem>
-                        <SelectItem value="person">{t("contact.form.service.person")}</SelectItem>
-                        <SelectItem value="evidence">{t("contact.form.service.evidence")}</SelectItem>
-                        <SelectItem value="other">{t("contact.form.service.other")}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="message">{t("contact.form.message")}</Label>
-                    <Textarea
-                      id="message"
-                      placeholder={t("contact.form.message.placeholder")}
-                      value={formData.message}
-                      onChange={(e) => setFormData({...formData, message: e.target.value})}
-                      required
-                      rows={4}
-                      className="bg-background/50"
-                    />
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      id="privacy"
-                      checked={formData.privacy}
-                      onCheckedChange={(checked) => setFormData({...formData, privacy: checked as boolean})}
-                    />
-                    <Label htmlFor="privacy" className="text-sm cursor-pointer">
-                      {t("contact.form.privacy")}
-                    </Label>
-                  </div>
-
-                  <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
-                    {t("contact.form.submit")}
-                  </Button>
-
-                  <p className="text-xs text-muted-foreground text-center">
-                    {t("contact.form.note")}
-                  </p>
-                </form>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </section>
