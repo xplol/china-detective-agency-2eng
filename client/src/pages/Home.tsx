@@ -191,11 +191,15 @@ export default function Home() {
             </div>
 
             <div className="relative">
-              <img 
-                src="/about-team.jpg" 
-                alt="Professional Team" 
-                className="rounded-lg shadow-2xl"
-              />
+              <video 
+                src="https://cdn.sospi.top/video/1%E6%9C%8829%E6%97%A5.mp4"
+                controls
+                poster="/about-team.jpg"
+                className="rounded-lg shadow-2xl w-full"
+                style={{ maxHeight: '600px', objectFit: 'cover' }}
+              >
+                {t("about.video.unsupported")}
+              </video>
             </div>
           </div>
         </div>
@@ -278,6 +282,15 @@ export default function Home() {
 
           <div className="max-w-4xl mx-auto">
             <div className="space-y-6">
+              {/* Team Image */}
+              <div className="mb-12 text-center">
+                <img 
+                  src="/about-team.jpg" 
+                  alt="Professional Team" 
+                  className="rounded-lg shadow-2xl mx-auto max-w-2xl w-full"
+                />
+              </div>
+              
               <h3 className="text-2xl font-bold mb-6">{t("contact.methods")}</h3>
               
               <div className="grid sm:grid-cols-2 gap-4">
