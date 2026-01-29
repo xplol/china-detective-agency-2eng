@@ -194,7 +194,7 @@ export default function Home() {
               <video 
                 src="https://cdn.sospi.top/video/1%E6%9C%8829%E6%97%A5.mp4"
                 controls
-                poster="/about-team.jpg"
+                poster="/images/video-poster.jpg"
                 className="rounded-lg shadow-2xl w-full"
                 style={{ maxHeight: '600px', objectFit: 'cover' }}
               >
