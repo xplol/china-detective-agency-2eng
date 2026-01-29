@@ -405,12 +405,23 @@ export default function Home() {
 
             <div>
               <h4 className="font-bold mb-4">{t("footer.links")}</h4>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <button onClick={() => scrollToSection("home")} className="text-muted-foreground hover:text-accent transition-colors text-left">{t("nav.home")}</button>
-                <button onClick={() => scrollToSection("services")} className="text-muted-foreground hover:text-accent transition-colors text-left">{t("nav.services")}</button>
-                <button onClick={() => scrollToSection("about")} className="text-muted-foreground hover:text-accent transition-colors text-left">{t("nav.about")}</button>
-                <button onClick={() => scrollToSection("cases")} className="text-muted-foreground hover:text-accent transition-colors text-left">{t("nav.cases")}</button>
-                <button onClick={() => scrollToSection("contact")} className="text-muted-foreground hover:text-accent transition-colors text-left">{t("nav.contact")}</button>
+              <div className="space-y-2 text-sm">
+                <button onClick={() => scrollToSection("home")} className="text-muted-foreground hover:text-accent transition-colors text-left block">{t("nav.home")}</button>
+                <button onClick={() => scrollToSection("services")} className="text-muted-foreground hover:text-accent transition-colors text-left block">{t("nav.services")}</button>
+                <button onClick={() => scrollToSection("about")} className="text-muted-foreground hover:text-accent transition-colors text-left block">{t("nav.about")}</button>
+                <button onClick={() => scrollToSection("cases")} className="text-muted-foreground hover:text-accent transition-colors text-left block">{t("nav.cases")}</button>
+                <button onClick={() => scrollToSection("contact")} className="text-muted-foreground hover:text-accent transition-colors text-left block">{t("nav.contact")}</button>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="font-bold mb-4">{language === "zh" ? "调查服务" : "Services"}</h4>
+              <div className="space-y-2 text-sm">
+                <button onClick={() => scrollToSection("services")} className="text-muted-foreground hover:text-accent transition-colors text-left block">{t("services.marriage.title")}</button>
+                <button onClick={() => scrollToSection("services")} className="text-muted-foreground hover:text-accent transition-colors text-left block">{t("services.business.title")}</button>
+                <button onClick={() => scrollToSection("services")} className="text-muted-foreground hover:text-accent transition-colors text-left block">{t("services.person.title")}</button>
+                <button onClick={() => scrollToSection("services")} className="text-muted-foreground hover:text-accent transition-colors text-left block">{t("services.evidence.title")}</button>
+                <button onClick={() => scrollToSection("services")} className="text-muted-foreground hover:text-accent transition-colors text-left block">{t("services.risk.title")}</button>
               </div>
             </div>
 

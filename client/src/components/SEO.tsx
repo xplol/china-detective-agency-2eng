@@ -12,12 +12,12 @@ export default function SEO({ title, description, keywords, ogImage }: SEOProps)
   const { language } = useLanguage();
 
   const defaultTitle = language === "zh" 
-    ? "真相侦探社 - 专业私人调查与侦探服务 | 中国调查公司"
-    : "Truth Detective Agency - Professional Private Investigation Services in China";
+    ? "真相侦探社 - 专业私人侦探调查公司 | 婚姻调查_商业背景调查_寻人找人"
+    : "Truth Detective Agency - Private Investigator China | Relationship Investigation & Background Check";
 
   const defaultDescription = language === "zh"
-    ? "真相侦探社提供专业的私人调查服务，包括婚姻调查、商业背景调查、人员行踪调查、证据收集等。15年行业经验，500+成功案例，98%客户满意度。服务城市：上海、北京、广州、深圳、成都。24小时热线：+86 153 9761 5812"
-    : "Truth Detective Agency offers professional private investigation services in China, including relationship investigations, business background checks, person tracking, and evidence collection. 15+ years experience, 500+ successful cases, 98% client satisfaction. Serving Shanghai, Beijing, Guangzhou, Shenzhen, Chengdu. 24/7 Hotline: +86 153 9761 5812";
+    ? "真相侦探社是中国领先的私人侦探调查公司，专业提供婚姻出轨调查、商业背景调查、寻人找人、证据收集等服务。15年行业经验，500+成功案例，98%客户满意度，绝对保密。服务上海、北京、广州、深圳、成都等全国主要城市。24小时免费咨询热线：+86 153 9761 5812"
+    : "Truth Detective Agency is a leading private investigation company in China, specializing in relationship infidelity investigations, business background checks, missing person searches, and evidence collection. With 15+ years of experience, 500+ successful cases, and 98% client satisfaction, we guarantee absolute confidentiality. Serving major cities including Shanghai, Beijing, Guangzhou, Shenzhen, and Chengdu. Free 24/7 consultation: +86 153 9761 5812";
 
   const defaultKeywords = language === "zh"
     ? "私人侦探,私家侦探,调查公司,婚姻调查,出轨调查,商业调查,背景调查,寻人找人,证据收集,中国侦探,上海侦探,北京侦探"
