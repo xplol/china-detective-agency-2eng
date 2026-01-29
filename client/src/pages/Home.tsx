@@ -28,7 +28,9 @@ import {
   Award,
   Users,
   Lock,
-  CheckCircle2
+  CheckCircle2,
+  MessageCircle,
+  Send
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -111,7 +113,7 @@ export default function Home() {
             </Button>
             <div className="flex items-center gap-2 text-muted-foreground">
               <Phone className="w-5 h-5" />
-              <span>24小时服务热线：400-123-4567</span>
+              <span>24小时服务热线：+86 153 9761 5812</span>
             </div>
           </div>
         </div>
@@ -326,19 +328,19 @@ export default function Home() {
                   {
                     icon: Phone,
                     title: "24小时热线",
-                    content: "400-123-4567",
+                    content: "+86 153 9761 5812",
                     subtitle: "紧急情况随时联系"
                   },
                   {
                     icon: Mail,
                     title: "邮箱咨询",
-                    content: "info@truthdetective.com",
+                    content: "chinadetective8848@gmail.com",
                     subtitle: "详细案情请发邮件"
                   },
                   {
                     icon: MapPinned,
                     title: "办公地址",
-                    content: "北京市朝阳区CBD核心区",
+                    content: "上海、北京、广州、深圳、成都",
                     subtitle: "预约后可实地面谈"
                   },
                   {
@@ -379,6 +381,76 @@ export default function Home() {
                       <span>符合法律法规要求</span>
                     </li>
                   </ul>
+                </CardContent>
+              </Card>
+
+              {/* Social Media Contact */}
+              <Card className="glass-card">
+                <CardContent className="p-6">
+                  <h4 className="font-bold mb-4">社交媒体联系</h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-background/30 hover:bg-background/50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
+                          <MessageCircle className="w-5 h-5 text-green-500" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium">WhatsApp</div>
+                          <div className="text-xs text-muted-foreground">+86 153 9761 5812</div>
+                        </div>
+                      </div>
+                      <a 
+                        href="https://wa.me/8615397615812" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-xs text-accent hover:underline"
+                      >
+                        打开
+                      </a>
+                    </div>
+
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-background/30 hover:bg-background/50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-green-600/20 flex items-center justify-center">
+                          <MessageCircle className="w-5 h-5 text-green-600" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium">WeChat/微信</div>
+                          <div className="text-xs text-muted-foreground">ChinaDetective</div>
+                        </div>
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          const dialog = document.getElementById('wechat-qr-dialog') as HTMLDialogElement;
+                          dialog?.showModal();
+                        }}
+                        className="text-xs text-accent hover:underline"
+                      >
+                        查看二维码
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-background/30 hover:bg-background/50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                          <Send className="w-5 h-5 text-blue-500" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium">Telegram</div>
+                          <div className="text-xs text-muted-foreground">chinadetective8848_bot</div>
+                        </div>
+                      </div>
+                      <a 
+                        href="https://t.me/chinadetective8848_bot" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-xs text-accent hover:underline"
+                      >
+                        打开
+                      </a>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -526,6 +598,32 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* WeChat QR Code Dialog */}
+      <dialog id="wechat-qr-dialog" className="rounded-lg p-0 backdrop:bg-black/80">
+        <div className="bg-card p-6 rounded-lg max-w-sm">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-bold">微信扫码联系</h3>
+            <button
+              onClick={() => {
+                const dialog = document.getElementById('wechat-qr-dialog') as HTMLDialogElement;
+                dialog?.close();
+              }}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              ×
+            </button>
+          </div>
+          <img
+            src="/images/wechat-qr-code.jpg"
+            alt="WeChat QR Code"
+            className="w-full rounded-lg mb-4"
+          />
+          <p className="text-sm text-muted-foreground text-center">
+            扫码或搜索：<span className="font-medium text-foreground">ChinaDetective</span>
+          </p>
+        </div>
+      </dialog>
     </div>
   );
 }
