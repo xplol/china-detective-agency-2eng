@@ -120,9 +120,13 @@ moltbot_menu() {
 		local running_status=$(get_running_status)
 		local update_message=$(check_openclaw_update)
 
+		local openclaw_ver
+		openclaw_ver=$(openclaw --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+		[ -z "$openclaw_ver" ] && openclaw_ver="未安装"
 		echo "======================================="
-		echo -e "ClawdBot > MoltBot > OpenClaw 管理"
-		echo -e "$install_status $running_status $update_message"
+		echo -e "  OpenClaw 安装管理器  v${openclaw_ver}"
+		echo -e "  $install_status  $running_status"
+		[ -n "$update_message" ] && echo -e "  $update_message"
 		echo "======================================="
 		echo "1.  安装"
 		echo "2.  启动"
