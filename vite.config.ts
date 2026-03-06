@@ -150,7 +150,31 @@ function vitePluginManusDebugCollector(): Plugin {
   };
 }
 
-const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector()];
+/**
+ * Vite plugin to copy the setup/ directory into dist/public/setup/ after build.
+ * This allows shell scripts to be served via GitHub Pages.
+ */
+function vitePluginCopySetup(): Plugin {
+  return {
+    name: "copy-setup-dir",
+    closeBundle() {
+      const setupSrc = path.resolve(PROJECT_ROOT, "setup");
+      const setupDest = path.resolve(PROJECT_ROOT, "dist/public/setup");
+      if (fs.existsSync(setupSrc)) {
+        fs.mkdirSync(setupDest, { recursive: true });
+        for (const file of fs.readdirSync(setupSrc)) {
+          fs.copyFileSync(
+            path.join(setupSrc, file),
+            path.join(setupDest, file)
+          );
+        }
+        console.log(`[copy-setup-dir] Copied setup/ -> dist/public/setup/`);
+      }
+    },
+  };
+}
+
+const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector(), vitePluginCopySetup()];
 
 export default defineConfig({
   plugins,
