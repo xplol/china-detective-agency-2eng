@@ -149,8 +149,33 @@ moltbot_menu() {
 	}
 
 
+	# 修复 VPS root 环境下 systemd --user 不可用的问题
+	_fix_systemd_user() {
+		# 1. 启用 systemd lingering（让 root 的 user 实例随系统启动）
+		if command -v loginctl &>/dev/null; then
+			loginctl enable-linger root 2>/dev/null || true
+		fi
+
+		# 2. 设置 XDG_RUNTIME_DIR（systemd --user 必需）
+		if [ -z "$XDG_RUNTIME_DIR" ]; then
+			export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+		fi
+
+		# 3. 确保目录存在且权限正确
+		if [ ! -d "$XDG_RUNTIME_DIR" ]; then
+			mkdir -p "$XDG_RUNTIME_DIR"
+			chmod 700 "$XDG_RUNTIME_DIR"
+		fi
+
+		# 4. 启动 systemd --user daemon（如果还没运行）
+		if command -v systemctl &>/dev/null; then
+			systemctl --user daemon-reload 2>/dev/null || true
+		fi
+	}
+
 	start_gateway() {
-		openclaw gateway stop
+		_fix_systemd_user
+		openclaw gateway stop 2>/dev/null || true
 		openclaw gateway start
 		sleep 3
 	}
@@ -228,6 +253,9 @@ WRAPPER
 				echo -e "${gl_lv}openclaw 包装脚本创建成功${gl_bai}"
 			fi
 		fi
+
+		# 修复 systemd --user 环境（VPS root 用户必需）
+		_fix_systemd_user
 
 		openclaw onboard --install-daemon
 		start_gateway
