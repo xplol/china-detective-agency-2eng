@@ -724,12 +724,12 @@ EOF
 		echo "更新 OpenClaw..."
 		send_stats "更新 OpenClaw..."
 		install_node_and_tools
-		npm install -g openclaw@latest
-		crontab -l 2>/dev/null | grep -v "s gateway" | crontab -
+		npm install -g openclaw@latest --ignore-scripts
+		# 清除旧的 cron gateway 任务
+		crontab -l 2>/dev/null | grep -v "s gateway" | crontab - 2>/dev/null || true
 		start_gateway
 		hash -r
-		add_app_id
-		echo "更新完成"
+		echo -e "${gl_lv}更新完成 ✅${gl_bai}"
 		break_end
 	}
 
@@ -737,13 +737,58 @@ EOF
 	uninstall_moltbot() {
 		echo "卸载 OpenClaw..."
 		send_stats "卸载 OpenClaw..."
-		openclaw uninstall
-		npm uninstall -g openclaw
-		crontab -l 2>/dev/null | grep -v "s gateway" | crontab -
-		rm -rf /root/.openclaw
-		hash -r
-		sed -i "/\b${app_id}\b/d" /home/docker/appno.txt
-		echo "卸载完成"
+
+		# 1. 停止 gateway 进程
+		echo "正在停止 OpenClaw gateway..."
+		openclaw gateway stop 2>/dev/null || true
+		# 停止可能存在的 tmux session
+		tmux kill-session -t gateway 2>/dev/null || true
+		# 杀掉所有残留 openclaw 进程
+		pkill -f "openclaw" 2>/dev/null || true
+		pkill -f "openclaw/dist/entry.js" 2>/dev/null || true
+		sleep 1
+
+		# 2. 执行 openclaw 自带卸载（如果命令存在）
+		if command -v openclaw &>/dev/null; then
+			openclaw uninstall 2>/dev/null || true
+		fi
+
+		# 3. npm 卸载全局包
+		echo "正在通过 npm 卸载 openclaw..."
+		npm uninstall -g openclaw 2>/dev/null || true
+
+		# 4. 删除 npm 全局模块残留目录
+		local npm_root
+		npm_root=$(npm root -g 2>/dev/null)
+		if [ -n "$npm_root" ] && [ -d "$npm_root/openclaw" ]; then
+			echo "正在删除 npm 模块残留目录: $npm_root/openclaw"
+			rm -rf "$npm_root/openclaw"
+		fi
+
+		# 5. 删除包装脚本（如果是我们创建的）
+		for bin_path in /usr/local/bin/openclaw /usr/bin/openclaw; do
+			if [ -f "$bin_path" ]; then
+				echo "正在删除 $bin_path"
+				rm -f "$bin_path"
+			fi
+		done
+
+		# 6. 清除 cron 定时任务
+		crontab -l 2>/dev/null | grep -v "openclaw\|s gateway" | crontab - 2>/dev/null || true
+
+		# 7. 删除配置目录和数据
+		echo "正在删除配置目录 ~/.openclaw ..."
+		rm -rf ~/.openclaw
+		# 兼容 root 用户
+		[ "$(whoami)" = "root" ] && rm -rf /root/.openclaw 2>/dev/null || true
+
+		# 8. 删除日志目录
+		rm -rf ~/openclaw-logs 2>/dev/null || true
+
+		# 9. 刷新命令缓存
+		hash -r 2>/dev/null || true
+
+		echo -e "${gl_lv}OpenClaw 已完全卸载 ✅${gl_bai}"
 		break_end
 	}
 
