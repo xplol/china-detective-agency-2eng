@@ -149,35 +149,33 @@ moltbot_menu() {
 	}
 
 
-	# 修复 VPS root 环境下 systemd --user 不可用的问题
-	_fix_systemd_user() {
-		# 1. 启用 systemd lingering（让 root 的 user 实例随系统启动）
-		if command -v loginctl &>/dev/null; then
-			loginctl enable-linger root 2>/dev/null || true
-		fi
-
-		# 2. 设置 XDG_RUNTIME_DIR（systemd --user 必需）
-		if [ -z "$XDG_RUNTIME_DIR" ]; then
-			export XDG_RUNTIME_DIR="/run/user/$(id -u)"
-		fi
-
-		# 3. 确保目录存在且权限正确
-		if [ ! -d "$XDG_RUNTIME_DIR" ]; then
-			mkdir -p "$XDG_RUNTIME_DIR"
-			chmod 700 "$XDG_RUNTIME_DIR"
-		fi
-
-		# 4. 启动 systemd --user daemon（如果还没运行）
-		if command -v systemctl &>/dev/null; then
-			systemctl --user daemon-reload 2>/dev/null || true
-		fi
-	}
-
+	# 用 tmux 后台启动 gateway（绕过 systemd --user，适用于 VPS root 环境）
 	start_gateway() {
-		_fix_systemd_user
-		openclaw gateway stop 2>/dev/null || true
-		openclaw gateway start
+		# 确保 tmux 已安装
+		if ! command -v tmux &>/dev/null; then
+			if command -v apt-get &>/dev/null; then
+				apt-get install -y tmux -q
+			elif command -v dnf &>/dev/null; then
+				dnf install -y tmux -q
+			fi
+		fi
+
+		# 停止旧进程
+		pkill -f 'openclaw gateway' 2>/dev/null || true
+		tmux kill-session -t openclaw-gw 2>/dev/null || true
+		sleep 1
+
+		# 用 tmux 后台启动 gateway（不依赖 systemd --user）
+		tmux new-session -d -s openclaw-gw \
+			"openclaw gateway --allow-unconfigured 2>&1 | tee -a /root/.openclaw/gateway.log"
 		sleep 3
+
+		# 验证是否启动成功
+		if pgrep -f 'openclaw gateway' > /dev/null 2>&1; then
+			echo -e "${gl_lv}OpenClaw Gateway 已在后台启动 ✅${gl_bai}"
+		else
+			echo -e "${gl_huang}Gateway 启动可能需要更多时间，请稍后用菜单 4 查看日志${gl_bai}"
+		fi
 	}
 
 
@@ -254,10 +252,8 @@ WRAPPER
 			fi
 		fi
 
-		# 修复 systemd --user 环境（VPS root 用户必需）
-		_fix_systemd_user
-
-		openclaw onboard --install-daemon
+		# 运行 onboard 配置向导（不使用 --install-daemon 避免 systemd --user 错误）
+		openclaw onboard
 		start_gateway
 		break_end
 
@@ -274,17 +270,29 @@ WRAPPER
 	stop_bot() {
 		echo "停止 OpenClaw..."
 		send_stats "停止 OpenClaw..."
-		tmux kill-session -t gateway > /dev/null 2>&1
-		openclaw gateway stop
+		pkill -f 'openclaw gateway' 2>/dev/null || true
+		tmux kill-session -t openclaw-gw 2>/dev/null || true
+		# 兼容旧版 session 名
+		tmux kill-session -t gateway 2>/dev/null || true
+		echo -e "${gl_lv}OpenClaw 已停止 ✅${gl_bai}"
 		break_end
 	}
 
 	view_logs() {
 		echo "查看 OpenClaw 状态日志"
 		send_stats "查看 OpenClaw 日志"
-		openclaw status
-		openclaw gateway status
-		openclaw logs
+		echo "--- 进程状态 ---"
+		pgrep -fa 'openclaw' 2>/dev/null || echo "未检测到 openclaw 进程"
+		echo ""
+		echo "--- tmux session ---"
+		tmux ls 2>/dev/null || echo "无活跃 tmux session"
+		echo ""
+		echo "--- gateway 日志（最后 50 行）---"
+		if [ -f /root/.openclaw/gateway.log ]; then
+			tail -50 /root/.openclaw/gateway.log
+		else
+			openclaw logs 2>/dev/null || echo "日志文件不存在"
+		fi
 		break_end
 	}
 
