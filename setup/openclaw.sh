@@ -157,18 +157,45 @@ moltbot_menu() {
 
 
 	install_node_and_tools() {
-		if command -v dnf &>/dev/null; then
-			curl -fsSL https://rpm.nodesource.com/setup_24.x | sudo bash -
-			dnf update -y
-			dnf group install -y "Development Tools" "Development Libraries"
-			dnf install -y cmake libatomic nodejs
+		echo -e "${gl_huang}正在安装/检查依赖环境（git、Node.js 24）...${gl_bai}"
+
+		# ---------- 安装 git ----------
+		if ! command -v git &>/dev/null; then
+			echo "正在安装 git..."
+			if command -v apt-get &>/dev/null; then
+				apt-get update -y && apt-get install -y git
+			elif command -v dnf &>/dev/null; then
+				dnf install -y git
+			elif command -v yum &>/dev/null; then
+				yum install -y git
+			fi
+		else
+			echo -e "${gl_lv}git 已安装: $(git --version)${gl_bai}"
 		fi
 
-		if command -v apt &>/dev/null; then
-			curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
-			apt update -y
-			apt install build-essential python3 libatomic1 nodejs -y
+		# ---------- 安装 Node.js 24 ----------
+		local node_ver=0
+		if command -v node &>/dev/null; then
+			node_ver=$(node --version 2>/dev/null | sed 's/v//' | cut -d. -f1)
 		fi
+
+		if [ "$node_ver" -lt 22 ] 2>/dev/null; then
+			echo "正在安装 Node.js 24 LTS..."
+			if command -v apt-get &>/dev/null; then
+				curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
+				apt-get install -y nodejs build-essential python3 libatomic1
+			elif command -v dnf &>/dev/null; then
+				curl -fsSL https://rpm.nodesource.com/setup_24.x | bash -
+				dnf install -y nodejs cmake libatomic
+			elif command -v yum &>/dev/null; then
+				curl -fsSL https://rpm.nodesource.com/setup_24.x | bash -
+				yum install -y nodejs cmake libatomic
+			fi
+		else
+			echo -e "${gl_lv}Node.js 已满足要求: $(node --version)${gl_bai}"
+		fi
+
+		echo -e "${gl_lv}依赖检查完成 ✅${gl_bai}"
 	}
 
 	install_moltbot() {
@@ -182,12 +209,28 @@ moltbot_menu() {
 			npm config set registry https://registry.npmmirror.com
 		fi
 
-		git config --global --unset url."git@github.com:".insteadOf
+		git config --global --unset url."git@github.com:".insteadOf 2>/dev/null || true
 
-		npm install -g openclaw@latest
+		echo "正在通过 npm 安装 openclaw（跳过原生模块编译）..."
+		npm install -g openclaw@latest --ignore-scripts
+
+		# 验证安装
+		if ! command -v openclaw &>/dev/null; then
+			# 尝试创建包装脚本
+			local BASE_DIR
+			BASE_DIR=$(npm root -g)/openclaw
+			if [ -f "$BASE_DIR/dist/entry.js" ]; then
+				cat > /usr/local/bin/openclaw << 'WRAPPER'
+#!/bin/bash
+exec node "$(npm root -g)/openclaw/dist/entry.js" "$@"
+WRAPPER
+				chmod +x /usr/local/bin/openclaw
+				echo -e "${gl_lv}openclaw 包装脚本创建成功${gl_bai}"
+			fi
+		fi
+
 		openclaw onboard --install-daemon
 		start_gateway
-		add_app_id
 		break_end
 
 	}
