@@ -147,6 +147,8 @@ moltbot_menu() {
 		echo "15. 更新"
 		echo "16. 卸载"
 		echo "--------------------"
+		echo "17. MTProxy 代理管理"
+		echo "--------------------"
 		echo "0. 返回上一级选单"
 		echo "--------------------"
 		printf "请输入选项并回车: "
@@ -1021,11 +1023,133 @@ EOF
 			 	;;
 			15) update_moltbot ;;
 			16) uninstall_moltbot ;;
+			17) mtproxy_menu ;;
 			*) break ;;
-		esac
+			esac
 	done
 }
 
+
+# ============================================================
+# MTProxy 子菜单
+# ============================================================
+mtproxy_menu() {
+	local MTPROXY_DIR="/home/mtproxy"
+	local MTPROXY_SCRIPT="$MTPROXY_DIR/mtproxy.sh"
+	local MTPROXY_URL="https://github.com/ellermister/mtproxy/raw/master/mtproxy.sh"
+
+	# 确保目录存在并下载/更新脚本
+	_mtproxy_ensure_script() {
+		sudo mkdir -p "$MTPROXY_DIR"
+		if [ ! -f "$MTPROXY_SCRIPT" ]; then
+			echo -e "${gl_huang}正在下载 MTProxy 脚本...${gl_bai}"
+			sudo curl -fsSL -o "$MTPROXY_SCRIPT" "$MTPROXY_URL" && sudo chmod +x "$MTPROXY_SCRIPT"
+			if [ $? -ne 0 ]; then
+				echo -e "${gl_hong}下载失败，请检查网络连接${gl_bai}"
+				return 1
+			fi
+		fi
+	}
+
+	# 获取 MTProxy 运行状态
+	_mtproxy_status() {
+		if pgrep -f 'mtproto-proxy\|mtg\|mtprotoproxy' > /dev/null 2>&1; then
+			echo -e "${gl_lv}● 运行中${gl_bai}"
+		else
+			echo -e "${gl_hong}○ 未运行${gl_bai}"
+		fi
+	}
+
+	while true; do
+		clear
+		local mtp_status=$(_mtproxy_status)
+		echo "======================================="
+		echo -e "  MTProxy 代理管理  $mtp_status"
+		echo "  目录: $MTPROXY_DIR"
+		echo "======================================="
+		echo "1. 安装 MTProxy"
+		echo "2. 启动"
+		echo "3. 停止"
+		echo "4. 重启"
+		echo "--------------------"
+		echo "5. 查看连接信息"
+		echo "6. 调试运行（前台输出日志）"
+		echo "7. 重新安装/重新配置"
+		echo "--------------------"
+		echo "8. 更新脚本至最新版"
+		echo "9. 卸载（删除目录）"
+		echo "--------------------"
+		echo "0. 返回上一级"
+		echo "--------------------"
+		printf "请输入选项并回车: "
+		read mtp_choice
+		case $mtp_choice in
+			1)
+				send_stats "安装 MTProxy"
+				_mtproxy_ensure_script || { break_end; continue; }
+				cd "$MTPROXY_DIR" && sudo bash mtproxy.sh
+				break_end
+				;;
+			2)
+				send_stats "启动 MTProxy"
+				_mtproxy_ensure_script || { break_end; continue; }
+				cd "$MTPROXY_DIR" && sudo bash mtproxy.sh start
+				break_end
+				;;
+			3)
+				send_stats "停止 MTProxy"
+				[ -f "$MTPROXY_SCRIPT" ] && cd "$MTPROXY_DIR" && sudo bash mtproxy.sh stop
+				break_end
+				;;
+			4)
+				send_stats "重启 MTProxy"
+				_mtproxy_ensure_script || { break_end; continue; }
+				cd "$MTPROXY_DIR" && sudo bash mtproxy.sh restart
+				break_end
+				;;
+			5)
+				send_stats "查看 MTProxy 连接信息"
+				_mtproxy_ensure_script || { break_end; continue; }
+				cd "$MTPROXY_DIR" && sudo bash mtproxy.sh
+				break_end
+				;;
+			6)
+				send_stats "调试运行 MTProxy"
+				_mtproxy_ensure_script || { break_end; continue; }
+				cd "$MTPROXY_DIR" && sudo bash mtproxy.sh debug
+				break_end
+				;;
+			7)
+				send_stats "重新配置 MTProxy"
+				_mtproxy_ensure_script || { break_end; continue; }
+				cd "$MTPROXY_DIR" && sudo bash mtproxy.sh reinstall
+				break_end
+				;;
+			8)
+				send_stats "更新 MTProxy 脚本"
+				echo "正在更新 MTProxy 脚本至最新版..."
+				sudo curl -fsSL -o "$MTPROXY_SCRIPT" "$MTPROXY_URL" && sudo chmod +x "$MTPROXY_SCRIPT"
+				echo -e "${gl_lv}更新完成 ✅${gl_bai}"
+				break_end
+				;;
+			9)
+				send_stats "卸载 MTProxy"
+				echo -e "${gl_hong}警告：将删除 $MTPROXY_DIR 目录下所有文件！${gl_bai}"
+				read -p "确认卸载？(y/N): " confirm_uninstall
+				if [[ "$confirm_uninstall" == "y" || "$confirm_uninstall" == "Y" ]]; then
+					[ -f "$MTPROXY_SCRIPT" ] && cd "$MTPROXY_DIR" && sudo bash mtproxy.sh stop 2>/dev/null || true
+					sudo rm -rf "$MTPROXY_DIR"
+					echo -e "${gl_lv}MTProxy 已卸载 ✅${gl_bai}"
+				else
+					echo "已取消"
+				fi
+				break_end
+				;;
+			0) return 0 ;;
+			*) echo "无效选项" ; sleep 1 ;;
+			esac
+	done
+}
 
 # --- 入口 ---
 moltbot_menu
