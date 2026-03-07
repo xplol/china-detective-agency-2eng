@@ -32,11 +32,11 @@ install() {
         else
             echo "正在安装 $pkg..."
             if command -v apt-get &>/dev/null; then
-                apt-get install -y "$pkg"
+                sudo apt-get install -y "$pkg"
             elif command -v dnf &>/dev/null; then
-                dnf install -y "$pkg"
+                sudo dnf install -y "$pkg"
             elif command -v yum &>/dev/null; then
-                yum install -y "$pkg"
+                sudo yum install -y "$pkg"
             else
                 echo "未知的包管理器，请手动安装 $pkg"; exit 1
             fi
@@ -47,11 +47,11 @@ install() {
 remove() {
     for pkg in "$@"; do
         if command -v apt-get &>/dev/null; then
-            apt-get remove -y "$pkg"
+            sudo apt-get remove -y "$pkg"
         elif command -v dnf &>/dev/null; then
-            dnf remove -y "$pkg"
+            sudo dnf remove -y "$pkg"
         elif command -v yum &>/dev/null; then
-            yum remove -y "$pkg"
+            sudo yum remove -y "$pkg"
         fi
     done
 }
@@ -158,9 +158,9 @@ moltbot_menu() {
 		# 确保 tmux 已安装
 		if ! command -v tmux &>/dev/null; then
 			if command -v apt-get &>/dev/null; then
-				apt-get install -y tmux -q
+				sudo apt-get install -y tmux -q
 			elif command -v dnf &>/dev/null; then
-				dnf install -y tmux -q
+				sudo dnf install -y tmux -q
 			fi
 		fi
 
@@ -190,11 +190,11 @@ moltbot_menu() {
 		if ! command -v git &>/dev/null; then
 			echo "正在安装 git..."
 			if command -v apt-get &>/dev/null; then
-				apt-get update -y && apt-get install -y git
+				sudo apt-get update -y && sudo apt-get install -y git
 			elif command -v dnf &>/dev/null; then
-				dnf install -y git
+				sudo dnf install -y git
 			elif command -v yum &>/dev/null; then
-				yum install -y git
+				sudo yum install -y git
 			fi
 		else
 			echo -e "${gl_lv}git 已安装: $(git --version)${gl_bai}"
@@ -209,17 +209,30 @@ moltbot_menu() {
 		if [ "$node_ver" -lt 22 ] 2>/dev/null; then
 			echo "正在安装 Node.js 24 LTS..."
 			if command -v apt-get &>/dev/null; then
-				curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
-				apt-get install -y nodejs build-essential python3 libatomic1
+				curl -fsSL https://deb.nodesource.com/setup_24.x | sudo bash -
+				sudo apt-get install -y nodejs build-essential python3 libatomic1
 			elif command -v dnf &>/dev/null; then
-				curl -fsSL https://rpm.nodesource.com/setup_24.x | bash -
-				dnf install -y nodejs cmake libatomic
+				curl -fsSL https://rpm.nodesource.com/setup_24.x | sudo bash -
+				sudo dnf install -y nodejs cmake libatomic
 			elif command -v yum &>/dev/null; then
-				curl -fsSL https://rpm.nodesource.com/setup_24.x | bash -
-				yum install -y nodejs cmake libatomic
+				curl -fsSL https://rpm.nodesource.com/setup_24.x | sudo bash -
+				sudo yum install -y nodejs cmake libatomic
 			fi
+			# 刷新 PATH，确保 npm/node 可用
+			export PATH="/usr/bin:/usr/local/bin:$PATH"
+			hash -r 2>/dev/null || true
 		else
 			echo -e "${gl_lv}Node.js 已满足要求: $(node --version)${gl_bai}"
+		fi
+
+		# 如果 npm 仍不可用，尝试通过 nvm 安装
+		if ! command -v npm &>/dev/null; then
+			echo "尝试通过 nvm 安装 Node.js..."
+			curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+			export NVM_DIR="$HOME/.nvm"
+			[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+			nvm install 24 && nvm use 24
+			hash -r 2>/dev/null || true
 		fi
 
 		echo -e "${gl_lv}依赖检查完成 ✅${gl_bai}"
