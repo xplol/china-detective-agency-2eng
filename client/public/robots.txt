@@ -1,6 +1,5 @@
 # Robots.txt for www.xplol.cn
-# Professional Private Investigation Services in China
-# English-focused Site
+# 金牛区三和易联电脑经营部官方页面 (Official site of Sanhe Yilian Computer, Jinniu District, Chengdu)
 
 # Allow all search engines to crawl the entire site
 User-agent: *
@@ -9,12 +8,8 @@ Allow: /
 # Sitemap location
 Sitemap: https://www.xplol.cn/sitemap.xml
 
-# Related site (Chinese-English bilingual)
-# Sitemap: https://www.spy007.top/sitemap.xml
-
 # Crawl-delay for polite crawling
 Crawl-delay: 1
 
 # Website: https://www.xplol.cn
-# Partner site: https://www.spy007.top
-# Last updated: 2026-01-29
+# Last updated: 2026-10-26

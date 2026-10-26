@@ -40,58 +40,52 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  
-  /* Custom gold color */
-  --color-gold: oklch(0.8 0.15 85);
-  --color-gold-dark: oklch(0.65 0.15 85);
 }
 
 :root {
-  /* Film Noir Detective Theme - Dark Mode */
-  --primary: oklch(0.8 0.15 85); /* Gold */
-  --primary-foreground: oklch(0.1 0.02 250);
-  --sidebar-primary: oklch(0.8 0.15 85);
-  --sidebar-primary-foreground: oklch(0.1 0.02 250);
-  --chart-1: oklch(0.7 0.15 85);
-  --chart-2: oklch(0.75 0.15 85);
-  --chart-3: oklch(0.8 0.15 85);
-  --chart-4: oklch(0.85 0.15 85);
-  --chart-5: oklch(0.9 0.15 85);
-  --radius: 0.5rem;
-  
-  /* Dark blue background */
-  --background: oklch(0.15 0.03 250); /* #0A1628 equivalent */
-  --foreground: oklch(0.95 0.01 250);
-  
-  /* Cards with semi-transparent dark background */
-  --card: oklch(0.2 0.03 250 / 0.6);
-  --card-foreground: oklch(0.95 0.01 250);
-  
-  --popover: oklch(0.18 0.03 250);
-  --popover-foreground: oklch(0.95 0.01 250);
-  
-  --secondary: oklch(0.25 0.03 250);
-  --secondary-foreground: oklch(0.9 0.01 250);
-  
-  --muted: oklch(0.3 0.03 250);
-  --muted-foreground: oklch(0.65 0.02 250);
-  
-  --accent: oklch(0.8 0.15 85); /* Gold accent */
-  --accent-foreground: oklch(0.1 0.02 250);
-  
+  /* Modern Tech Blue Theme - Light Mode */
+  --primary: oklch(0.55 0.21 261); /* Blue 600 */
+  --primary-foreground: oklch(0.98 0.005 250);
+  --sidebar-primary: oklch(0.55 0.21 261);
+  --sidebar-primary-foreground: oklch(0.98 0.005 250);
+  --chart-1: oklch(0.55 0.21 261);
+  --chart-2: oklch(0.72 0.14 220);
+  --chart-3: oklch(0.65 0.17 195);
+  --chart-4: oklch(0.6 0.18 280);
+  --chart-5: oklch(0.75 0.12 250);
+  --radius: 0.625rem;
+
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.21 0.03 255);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.21 0.03 255);
+
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.21 0.03 255);
+
+  --secondary: oklch(0.96 0.008 250);
+  --secondary-foreground: oklch(0.3 0.03 255);
+
+  --muted: oklch(0.96 0.008 250);
+  --muted-foreground: oklch(0.52 0.02 255);
+
+  --accent: oklch(0.95 0.02 250); /* Blue-tinted hover */
+  --accent-foreground: oklch(0.35 0.1 260);
+
   --destructive: oklch(0.55 0.22 25);
-  --destructive-foreground: oklch(0.95 0.01 250);
-  
-  --border: oklch(0.3 0.03 250 / 0.3);
-  --input: oklch(0.3 0.03 250 / 0.5);
-  --ring: oklch(0.8 0.15 85);
-  
-  --sidebar: oklch(0.18 0.03 250);
-  --sidebar-foreground: oklch(0.95 0.01 250);
-  --sidebar-accent: oklch(0.25 0.03 250);
-  --sidebar-accent-foreground: oklch(0.95 0.01 250);
-  --sidebar-border: oklch(0.3 0.03 250 / 0.3);
-  --sidebar-ring: oklch(0.8 0.15 85);
+  --destructive-foreground: oklch(0.98 0.005 250);
+
+  --border: oklch(0.92 0.008 255);
+  --input: oklch(0.92 0.008 255);
+  --ring: oklch(0.55 0.21 261);
+
+  --sidebar: oklch(0.98 0.005 250);
+  --sidebar-foreground: oklch(0.21 0.03 255);
+  --sidebar-accent: oklch(0.95 0.02 250);
+  --sidebar-accent-foreground: oklch(0.35 0.1 260);
+  --sidebar-border: oklch(0.92 0.008 255);
+  --sidebar-ring: oklch(0.55 0.21 261);
 }
 
 @layer base {
@@ -100,17 +94,13 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Noto Sans SC', sans-serif;
+    font-family: 'Inter', 'Noto Sans SC', sans-serif;
   }
-  
+
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Cinzel', serif;
+    font-family: 'Inter', 'Noto Sans SC', sans-serif;
   }
-  
-  .font-display {
-    font-family: 'Playfair Display', serif;
-  }
-  
+
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
   [type="button"]:not(:disabled),
@@ -151,20 +141,5 @@
       padding-right: 2rem;
       max-width: 1280px;
     }
-  }
-  
-  /* Gold gradient text effect */
-  .text-gold-gradient {
-    background: linear-gradient(135deg, oklch(0.9 0.15 85), oklch(0.7 0.15 75));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  
-  /* Glass morphism effect for cards */
-  .glass-card {
-    background: oklch(0.2 0.03 250 / 0.4);
-    backdrop-filter: blur(10px);
-    border: 1px solid oklch(0.3 0.03 250 / 0.3);
   }
 }

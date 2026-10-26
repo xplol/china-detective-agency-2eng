@@ -3,97 +3,86 @@ import { useLanguage } from "@/contexts/LanguageContext";
 export default function StructuredData() {
   const { language } = useLanguage();
 
-  const organizationData = {
+  const storeData = {
     "@context": "https://schema.org",
-    "@type": "ProfessionalService",
-    "name": language === "zh" ? "真相侦探社" : "Truth Detective Agency",
-    "description": language === "zh" 
-      ? "专业的私人调查与侦探服务，提供婚姻调查、商业背景调查、人员行踪调查、证据收集等服务"
-      : "Professional private investigation and detective services, offering relationship investigations, business background checks, person tracking, and evidence collection",
+    "@type": "ComputerStore",
+    "name": language === "zh" ? "金牛区三和易联电脑经营部" : "Sanhe Yilian Computer (Jinniu District)",
+    "description": language === "zh"
+      ? "位于成都市金牛区的电脑零售与技术服务门店，提供电脑整机销售、组装升级、维修维护、监控安防安装、网络综合布线与办公设备耗材等服务。"
+      : "A computer retail and service store in Jinniu District, Chengdu, offering PC sales, custom builds, repair and maintenance, CCTV installation, network cabling, and office equipment & supplies.",
     "url": "https://www.xplol.cn",
-    "logo": "https://www.xplol.cn/logo.png",
+    "logo": "https://www.xplol.cn/favicon.svg",
     "image": "https://www.xplol.cn/hero-bg.jpg",
-    "telephone": "+86-153-9761-5812",
-    "email": "chinadetective8848@gmail.com",
     "address": {
       "@type": "PostalAddress",
       "addressCountry": "CN",
-      "addressLocality": language === "zh" ? "上海" : "Shanghai"
+      "addressRegion": language === "zh" ? "四川省" : "Sichuan",
+      "addressLocality": language === "zh" ? "成都市" : "Chengdu",
+      "addressLocalityDistrict": language === "zh" ? "金牛区" : "Jinniu District"
     },
-    "areaServed": [
-      {
-        "@type": "City",
-        "name": language === "zh" ? "上海" : "Shanghai"
-      },
-      {
-        "@type": "City",
-        "name": language === "zh" ? "北京" : "Beijing"
-      },
-      {
-        "@type": "City",
-        "name": language === "zh" ? "广州" : "Guangzhou"
-      },
-      {
-        "@type": "City",
-        "name": language === "zh" ? "深圳" : "Shenzhen"
-      },
-      {
-        "@type": "City",
-        "name": language === "zh" ? "成都" : "Chengdu"
-      }
-    ],
-    "priceRange": "$$",
-    "openingHours": "Mo-Su 00:00-24:00",
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "4.9",
-      "reviewCount": "500",
-      "bestRating": "5"
-    }
+    "areaServed": {
+      "@type": "City",
+      "name": language === "zh" ? "成都市金牛区及周边" : "Jinniu District, Chengdu and nearby areas"
+    },
+    "openingHours": "Mo-Su 09:00-18:00"
   };
 
   const serviceData = {
     "@context": "https://schema.org",
     "@type": "Service",
-    "serviceType": language === "zh" ? "私人调查服务" : "Private Investigation Services",
+    "serviceType": language === "zh" ? "电脑销售与维修服务" : "Computer Sales & Repair Services",
     "provider": {
-      "@type": "ProfessionalService",
-      "name": language === "zh" ? "真相侦探社" : "Truth Detective Agency"
+      "@type": "ComputerStore",
+      "name": language === "zh" ? "金牛区三和易联电脑经营部" : "Sanhe Yilian Computer (Jinniu District)"
     },
     "areaServed": {
-      "@type": "Country",
-      "name": language === "zh" ? "中国" : "China"
+      "@type": "City",
+      "name": language === "zh" ? "成都市金牛区及周边" : "Jinniu District, Chengdu and nearby areas"
     },
     "hasOfferCatalog": {
       "@type": "OfferCatalog",
-      "name": language === "zh" ? "调查服务" : "Investigation Services",
+      "name": language === "zh" ? "服务项目" : "Services",
       "itemListElement": [
         {
           "@type": "Offer",
           "itemOffered": {
             "@type": "Service",
-            "name": language === "zh" ? "婚姻调查" : "Relationship Investigation"
+            "name": language === "zh" ? "电脑整机销售" : "Computer Sales"
           }
         },
         {
           "@type": "Offer",
           "itemOffered": {
             "@type": "Service",
-            "name": language === "zh" ? "商业背景调查" : "Business Background Check"
+            "name": language === "zh" ? "电脑组装与升级" : "Custom Builds & Upgrades"
           }
         },
         {
           "@type": "Offer",
           "itemOffered": {
             "@type": "Service",
-            "name": language === "zh" ? "人员行踪调查" : "Person Tracking"
+            "name": language === "zh" ? "维修与系统维护" : "Repair & Maintenance"
           }
         },
         {
           "@type": "Offer",
           "itemOffered": {
             "@type": "Service",
-            "name": language === "zh" ? "证据收集" : "Evidence Collection"
+            "name": language === "zh" ? "监控安防安装" : "CCTV & Security Installation"
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": language === "zh" ? "网络与综合布线" : "Networking & Cabling"
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": language === "zh" ? "办公设备与耗材" : "Office Equipment & Supplies"
           }
         }
       ]
@@ -104,7 +93,7 @@ export default function StructuredData() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationData) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(storeData) }}
       />
       <script
         type="application/ld+json"

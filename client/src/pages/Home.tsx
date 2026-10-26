@@ -1,28 +1,37 @@
-/* Film Noir Detective Aesthetic - Home Page with i18n support
- * Design Philosophy: Dark, cinematic, professional with gold accents
+/* 三和易联电脑经营部官方页面 - Modern Tech Blue Theme
+ * Light business style with dark hero, bilingual zh/en
  */
 
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-import { 
-  Heart, 
-  Building2, 
-  MapPin, 
-  FileText, 
-  Shield, 
-  Wallet,
-  Phone,
-  Mail,
+import {
+  Laptop,
+  Cpu,
+  Wrench,
+  Cctv,
+  Network,
+  Printer,
+  MapPin,
   MapPinned,
   Clock,
-  Award,
-  Users,
-  Lock,
+  Phone,
+  MonitorSmartphone,
+  Store,
+  BadgeDollarSign,
+  Car,
+  ShieldCheck,
+  MessageSquare,
+  ClipboardCheck,
+  Hammer,
+  Home as HomeIcon,
+  Briefcase,
+  ShoppingBag,
   CheckCircle2,
-  MessageCircle,
-  Send,
-  Globe
+  Globe,
+  Menu,
+  X
 } from "lucide-react";
 
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -31,94 +40,179 @@ import StructuredData from "@/components/StructuredData";
 
 export default function Home() {
   const { language, setLanguage, t } = useLanguage();
-  
-
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const scrollToSection = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+    setMenuOpen(false);
+    // Instant jump: deterministic landing across browsers and webviews
+    // (JS-animated smooth scrolling gets aborted by menu re-renders and
+    // is unreliable in embedded webviews such as WeChat's browser).
+    const el = document.getElementById(id);
+    if (!el) return;
+    const top = el.getBoundingClientRect().top + window.scrollY - 60;
+    window.scrollTo({ top: Math.max(top, 0) });
   };
+
+  const navItems = [
+    { id: "home", label: t("nav.home") },
+    { id: "services", label: t("nav.services") },
+    { id: "about", label: t("nav.about") },
+    { id: "process", label: t("nav.process") },
+    { id: "scenarios", label: t("nav.scenarios") },
+    { id: "contact", label: t("nav.contact") }
+  ];
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SEO />
       <StructuredData />
+
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
-        <div className="container mx-auto px-6 py-4">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/85 backdrop-blur-md border-b border-border/60">
+        <div className="container mx-auto px-6 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center">
-                <Shield className="w-6 h-6 text-accent-foreground" />
-              </div>
-              <span className="text-xl font-bold text-gold-gradient">Truth Detective Agency</span>
-            </div>
-
-            <div className="hidden md:flex items-center gap-6">
-              <button onClick={() => scrollToSection("home")} className="text-sm hover:text-accent transition-colors">{t("nav.home")}</button>
-              <button onClick={() => scrollToSection("services")} className="text-sm hover:text-accent transition-colors">{t("nav.services")}</button>
-              <button onClick={() => scrollToSection("about")} className="text-sm hover:text-accent transition-colors">{t("nav.about")}</button>
-              <button onClick={() => scrollToSection("cases")} className="text-sm hover:text-accent transition-colors">{t("nav.cases")}</button>
-              <button onClick={() => scrollToSection("contact")} className="text-sm hover:text-accent transition-colors">{t("nav.contact")}</button>
-            </div>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setLanguage(language === "zh" ? "en" : "zh")}
-              className="flex items-center gap-2"
+            <button
+              onClick={() => scrollToSection("home")}
+              className="flex items-center gap-2.5"
+              aria-label={t("nav.home")}
             >
-              <Globe className="w-4 h-4" />
-              {language === "zh" ? "EN" : "中文"}
-            </Button>
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center shadow-sm">
+                <MonitorSmartphone className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-lg font-bold tracking-tight whitespace-nowrap">
+                {t("footer.brand")}
+                {language === "zh" && (
+                  <span className="hidden sm:inline text-muted-foreground font-normal text-sm ml-2">
+                    电脑经营部
+                  </span>
+                )}
+              </span>
+            </button>
+
+            <div className="hidden lg:flex items-center gap-6">
+              {navItems.slice(1).map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => scrollToSection(item.id)}
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setLanguage(language === "zh" ? "en" : "zh")}
+                className="flex items-center gap-1.5"
+                aria-label="Switch language"
+              >
+                <Globe className="w-4 h-4" />
+                {t("lang.switch")}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="lg:hidden px-2"
+                onClick={() => setMenuOpen(!menuOpen)}
+                aria-label={t("nav.menu")}
+              >
+                {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </Button>
+            </div>
           </div>
         </div>
+
+        {/* Mobile menu */}
+        {menuOpen && (
+          <div className="lg:hidden border-t border-border/60 bg-background/95 backdrop-blur-md">
+            <div className="container mx-auto px-6 py-3 flex flex-col">
+              {navItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => scrollToSection(item.id)}
+                  className="text-left py-3 text-sm text-foreground hover:text-primary border-b border-border/40 last:border-0 transition-colors"
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Hero Section */}
-      <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
-        <div 
+      <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16 bg-slate-950">
+        <div
           className="absolute inset-0 z-0"
           style={{
             backgroundImage: "url(/hero-bg.jpg)",
             backgroundSize: "cover",
             backgroundPosition: "center",
-            filter: "brightness(0.4)"
+            filter: "brightness(0.45)"
           }}
         />
-        
-        <div className="container mx-auto px-6 relative z-10 text-center">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-            {t("hero.title.part1")}<br />
-            <span className="text-gold-gradient">{t("hero.title.part2")}</span>
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-slate-950/70 via-slate-950/30 to-slate-950/80" />
+
+        <div className="container mx-auto px-6 relative z-10 text-center py-20">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/25 bg-white/10 backdrop-blur-sm text-sm text-blue-100 mb-8">
+            <MapPin className="w-4 h-4 text-cyan-300" />
+            {t("hero.chip")}
+          </div>
+
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold mb-6 leading-tight text-white">
+            {t("hero.title.line1")}
+            <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-400">
+              {t("hero.title.line2")}
+            </span>
           </h1>
-          <p className="text-xl md:text-2xl mb-4 text-muted-foreground">
+
+          <p className="text-lg md:text-xl mb-10 text-slate-300 max-w-3xl mx-auto leading-relaxed">
             {t("hero.subtitle")}
           </p>
-          <p className="text-lg mb-8 text-muted-foreground">
-            {t("hero.description")}
-          </p>
-          
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button 
-              size="lg" 
-              className="bg-accent hover:bg-accent/90 text-accent-foreground px-8"
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14">
+            <Button
+              size="lg"
+              className="bg-blue-600 hover:bg-blue-500 text-white px-8 shadow-lg shadow-blue-950/50"
+              onClick={() => scrollToSection("services")}
+            >
+              {t("hero.cta.services")}
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-white/30 text-white hover:bg-white/10 hover:text-white px-8 backdrop-blur-sm"
               onClick={() => scrollToSection("contact")}
             >
-              {t("hero.cta")}
+              {t("hero.cta.contact")}
             </Button>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Phone className="w-5 h-5" />
-              <span>{t("hero.phone")}</span>
-            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-slate-300">
+            {[
+              { icon: Store, label: t("hero.trust1") },
+              { icon: BadgeDollarSign, label: t("hero.trust2") },
+              { icon: Car, label: t("hero.trust3") },
+              { icon: ShieldCheck, label: t("hero.trust4") }
+            ].map((item, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <item.icon className="w-4 h-4 text-cyan-300" />
+                <span>{item.label}</span>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Services Section */}
-      <section id="services" className="py-20 bg-background/95">
+      <section id="services" className="py-20 bg-background">
         <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">{t("services.title")}</h2>
+          <div className="text-center mb-14">
+            <h2 className="text-3xl md:text-5xl font-bold mb-4">{t("services.title")}</h2>
             <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
               {t("services.subtitle")}
             </p>
@@ -126,16 +220,21 @@ export default function Home() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              { icon: Heart, titleKey: "services.marriage.title", descKey: "services.marriage.desc" },
-              { icon: Building2, titleKey: "services.business.title", descKey: "services.business.desc" },
-              { icon: MapPin, titleKey: "services.person.title", descKey: "services.person.desc" },
-              { icon: FileText, titleKey: "services.evidence.title", descKey: "services.evidence.desc" },
-              { icon: Shield, titleKey: "services.risk.title", descKey: "services.risk.desc" },
-              { icon: Wallet, titleKey: "services.asset.title", descKey: "services.asset.desc" }
+              { icon: Laptop, titleKey: "services.sales.title", descKey: "services.sales.desc" },
+              { icon: Cpu, titleKey: "services.assemble.title", descKey: "services.assemble.desc" },
+              { icon: Wrench, titleKey: "services.repair.title", descKey: "services.repair.desc" },
+              { icon: Cctv, titleKey: "services.cctv.title", descKey: "services.cctv.desc" },
+              { icon: Network, titleKey: "services.network.title", descKey: "services.network.desc" },
+              { icon: Printer, titleKey: "services.office.title", descKey: "services.office.desc" }
             ].map((service, index) => (
-              <Card key={index} className="glass-card hover:border-accent/50 transition-all">
+              <Card
+                key={index}
+                className="border-border/70 hover:border-primary/50 hover:shadow-lg hover:shadow-blue-500/5 hover:-translate-y-0.5 transition-all"
+              >
                 <CardContent className="p-6">
-                  <service.icon className="w-12 h-12 text-accent mb-4" />
+                  <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center mb-4">
+                    <service.icon className="w-6 h-6 text-blue-600" />
+                  </div>
                   <h3 className="text-xl font-bold mb-3">{t(service.titleKey)}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     {t(service.descKey)}
@@ -145,9 +244,9 @@ export default function Home() {
             ))}
           </div>
 
-          <div className="mt-12 text-center">
+          <div className="mt-10 text-center">
             <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
-              <Lock className="w-4 h-4 text-accent" />
+              <ShieldCheck className="w-4 h-4 text-blue-600" />
               {t("services.note")}
             </p>
           </div>
@@ -155,350 +254,238 @@ export default function Home() {
       </section>
 
       {/* About Section */}
-      <section id="about" className="py-20 bg-background/80">
+      <section id="about" className="py-20 bg-muted/40">
         <div className="container mx-auto px-6">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-4xl md:text-5xl font-bold mb-6">{t("about.title")}</h2>
+              <h2 className="text-3xl md:text-5xl font-bold mb-6">{t("about.title")}</h2>
               <p className="text-muted-foreground mb-4 leading-relaxed">
-                {t("about.description1")}
+                {t("about.p1")}
               </p>
-              <p className="text-muted-foreground mb-6 leading-relaxed">
-                {t("about.description2")}
+              <p className="text-muted-foreground mb-8 leading-relaxed">
+                {t("about.p2")}
               </p>
 
-              <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="grid grid-cols-2 gap-4">
                 {[
-                  { icon: Award, label: t("about.years"), desc: t("about.years.desc") },
-                  { icon: Users, label: t("about.team"), desc: t("about.team.desc") },
-                  { icon: Lock, label: t("about.confidential"), desc: t("about.confidential.desc") },
-                  { icon: Clock, label: t("about.service"), desc: t("about.service.desc") }
+                  { icon: Store, titleKey: "about.point1.title", descKey: "about.point1.desc" },
+                  { icon: Hammer, titleKey: "about.point2.title", descKey: "about.point2.desc" },
+                  { icon: Clock, titleKey: "about.point3.title", descKey: "about.point3.desc" },
+                  { icon: ClipboardCheck, titleKey: "about.point4.title", descKey: "about.point4.desc" }
                 ].map((item, index) => (
-                  <Card key={index} className="glass-card">
-                    <CardContent className="p-4 text-center">
-                      <item.icon className="w-8 h-8 text-accent mx-auto mb-2" />
-                      <div className="text-lg font-bold mb-1">{item.label}</div>
-                      <div className="text-xs text-muted-foreground">{item.desc}</div>
-                    </CardContent>
-                  </Card>
+                  <div key={index} className="flex items-start gap-3 p-4 rounded-xl bg-card border border-border/70">
+                    <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
+                      <item.icon className="w-4.5 h-4.5 text-blue-600" />
+                    </div>
+                    <div>
+                      <div className="font-semibold text-sm mb-0.5">{t(item.titleKey)}</div>
+                      <div className="text-xs text-muted-foreground">{t(item.descKey)}</div>
+                    </div>
+                  </div>
                 ))}
               </div>
-
-              <p className="text-sm text-muted-foreground flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-accent" />
-                {t("about.note")}
-              </p>
             </div>
 
             <div className="relative">
-              <video 
-                src="https://cdn.sospi.top/video/1%E6%9C%8829%E6%97%A5.mp4"
-                controls
-                poster="/images/video-poster.jpg"
-                className="rounded-lg shadow-2xl w-full"
-                style={{ maxHeight: '600px', objectFit: 'cover' }}
-              >
-                {t("about.video.unsupported")}
-              </video>
+              <img
+                src="/about-store.jpg"
+                alt={language === "zh" ? "三和易联电脑维修工作台" : "Sanhe Yilian Computer repair workbench"}
+                className="rounded-2xl shadow-xl w-full object-cover aspect-[4/3]"
+                loading="lazy"
+              />
+              <div className="absolute -bottom-5 left-6 right-6 sm:left-8 sm:right-auto bg-blue-600 text-white rounded-xl px-5 py-3.5 shadow-lg flex items-center gap-3">
+                <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+                <span className="text-sm font-medium">
+                  {language === "zh" ? "诚信经营 · 技术立身" : "Honest business, solid craftsmanship"}
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-20 bg-background/95">
+      {/* Process Section */}
+      <section id="process" className="py-20 bg-background">
         <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">{t("stats.title")}</h2>
-            <p className="text-muted-foreground text-lg">
-              {t("stats.subtitle")}
-            </p>
+          <div className="text-center mb-14">
+            <h2 className="text-3xl md:text-5xl font-bold mb-4">{t("process.title")}</h2>
+            <p className="text-muted-foreground text-lg">{t("process.subtitle")}</p>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { number: t("stats.cases"), label: t("stats.cases.label"), desc: t("stats.cases.desc") },
-              { number: t("stats.satisfaction"), label: t("stats.satisfaction.label"), desc: t("stats.satisfaction.desc") },
-              { number: t("stats.experience"), label: t("stats.experience.label"), desc: t("stats.experience.desc") },
-              { number: t("stats.clients"), label: t("stats.clients.label"), desc: t("stats.clients.desc") }
-            ].map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-5xl font-bold text-gold-gradient mb-2">{stat.number}</div>
-                <div className="text-lg font-semibold mb-1">{stat.label}</div>
-                <div className="text-sm text-muted-foreground">{stat.desc}</div>
+              { icon: MessageSquare, titleKey: "process.step1.title", descKey: "process.step1.desc" },
+              { icon: ClipboardCheck, titleKey: "process.step2.title", descKey: "process.step2.desc" },
+              { icon: Hammer, titleKey: "process.step3.title", descKey: "process.step3.desc" },
+              { icon: ShieldCheck, titleKey: "process.step4.title", descKey: "process.step4.desc" }
+            ].map((step, index) => (
+              <div key={index} className="relative">
+                <div className="h-full rounded-xl border border-border/70 bg-card p-6 text-center hover:border-primary/50 transition-colors">
+                  <div className="relative inline-flex mb-4">
+                    <div className="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center">
+                      <step.icon className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center">
+                      {index + 1}
+                    </div>
+                  </div>
+                  <h3 className="font-bold mb-2">{t(step.titleKey)}</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{t(step.descKey)}</p>
+                </div>
+                {index < 3 && (
+                  <div className="hidden lg:block absolute top-1/2 -right-3.5 w-3 h-0.5 bg-border" aria-hidden="true" />
+                )}
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Cases Section */}
-      <section id="cases" className="py-20 bg-background/80">
+      {/* Scenarios Section */}
+      <section id="scenarios" className="py-20 bg-muted/40">
         <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">{t("cases.title")}</h2>
-            <p className="text-muted-foreground text-lg">
-              {t("cases.subtitle")}
-            </p>
+          <div className="text-center mb-14">
+            <h2 className="text-3xl md:text-5xl font-bold mb-4">{t("scenarios.title")}</h2>
+            <p className="text-muted-foreground text-lg">{t("scenarios.subtitle")}</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { titleKey: "cases.case1.title", descKey: "cases.case1.desc", resultKey: "cases.case1.result" },
-              { titleKey: "cases.case2.title", descKey: "cases.case2.desc", resultKey: "cases.case2.result" },
-              { titleKey: "cases.case3.title", descKey: "cases.case3.desc", resultKey: "cases.case3.result" }
-            ].map((caseItem, index) => (
-              <Card key={index} className="glass-card">
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-bold mb-3 text-accent">{t(caseItem.titleKey)}</h3>
-                  <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-                    {t(caseItem.descKey)}
-                  </p>
-                  <div className="text-xs text-accent font-medium">
-                    {t(caseItem.resultKey)}
+              { icon: HomeIcon, titleKey: "scenarios.home.title", descKey: "scenarios.home.desc" },
+              { icon: Briefcase, titleKey: "scenarios.business.title", descKey: "scenarios.business.desc" },
+              { icon: ShoppingBag, titleKey: "scenarios.shop.title", descKey: "scenarios.shop.desc" }
+            ].map((item, index) => (
+              <Card key={index} className="border-border/70 hover:border-primary/50 transition-colors">
+                <CardContent className="p-7">
+                  <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center mb-4">
+                    <item.icon className="w-6 h-6 text-blue-600" />
                   </div>
+                  <h3 className="text-xl font-bold mb-3">{t(item.titleKey)}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {t(item.descKey)}
+                  </p>
                 </CardContent>
               </Card>
             ))}
-          </div>
-
-          <div className="text-center mt-8">
-            <p className="text-sm text-muted-foreground">
-              {t("cases.note")}
-            </p>
           </div>
         </div>
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="py-20 bg-background/80">
+      <section id="contact" className="py-20 bg-background">
         <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">{t("contact.title")}</h2>
-            <p className="text-muted-foreground text-lg">
-              {t("contact.subtitle")}
-            </p>
+          <div className="text-center mb-14">
+            <h2 className="text-3xl md:text-5xl font-bold mb-4">{t("contact.title")}</h2>
+            <p className="text-muted-foreground text-lg">{t("contact.subtitle")}</p>
           </div>
 
           <div className="max-w-4xl mx-auto">
-            <div className="space-y-6">
-              {/* Team Image */}
-              <div className="mb-12 text-center">
-                <img 
-                  src="/about-team.jpg" 
-                  alt="Professional Team" 
-                  className="rounded-lg shadow-2xl mx-auto max-w-2xl w-full"
-                />
-              </div>
-              
-              <h3 className="text-2xl font-bold mb-6">{t("contact.methods")}</h3>
-              
-              <div className="grid sm:grid-cols-2 gap-4">
-                {[
-                  { icon: Phone, title: t("contact.phone.title"), content: t("contact.phone.content"), subtitle: t("contact.phone.subtitle") },
-                  { icon: Mail, title: t("contact.email.title"), content: t("contact.email.content"), subtitle: t("contact.email.subtitle") },
-                  { icon: MapPinned, title: t("contact.address.title"), content: t("contact.address.content"), subtitle: t("contact.address.subtitle") },
-                  { icon: Clock, title: t("contact.hours.title"), content: t("contact.hours.content"), subtitle: t("contact.hours.subtitle") }
-                ].map((contact, index) => (
-                  <Card key={index} className="glass-card">
-                    <CardContent className="p-6">
-                      <contact.icon className="w-8 h-8 text-accent mb-3" />
-                      <h4 className="font-bold mb-2">{contact.title}</h4>
-                      <p className="text-sm font-medium mb-1">{contact.content}</p>
+            <div className="grid sm:grid-cols-2 gap-4 mb-4">
+              {[
+                { icon: MapPinned, title: t("contact.address.title"), content: t("contact.address.content"), subtitle: t("contact.address.subtitle") },
+                { icon: Clock, title: t("contact.hours.title"), content: t("contact.hours.content"), subtitle: t("contact.hours.subtitle") },
+                { icon: MapPin, title: t("contact.area.title"), content: t("contact.area.content"), subtitle: t("contact.area.subtitle") },
+                { icon: Phone, title: t("contact.phone.title"), content: t("contact.phone.content"), subtitle: t("contact.phone.subtitle") }
+              ].map((contact, index) => (
+                <Card key={index} className="border-border/70">
+                  <CardContent className="p-6 flex items-start gap-4">
+                    <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
+                      <contact.icon className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold mb-1">{contact.title}</h4>
+                      <p className="text-sm font-medium mb-0.5">{contact.content}</p>
                       <p className="text-xs text-muted-foreground">{contact.subtitle}</p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-
-              <Card className="glass-card">
-                <CardContent className="p-6">
-                  <h4 className="font-bold mb-4 flex items-center gap-2">
-                    <Lock className="w-5 h-5 text-accent" />
-                    {t("contact.privacy.title")}
-                  </h4>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    {["item1", "item2", "item3"].map((item, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
-                        <span>{t(`contact.privacy.${item}`)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-
-              {/* Social Media Contact */}
-              <Card className="glass-card">
-                <CardContent className="p-6">
-                  <h4 className="font-bold mb-4">{t("contact.social.title")}</h4>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-background/30 hover:bg-background/50 transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
-                          <MessageCircle className="w-5 h-5 text-green-500" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium">WhatsApp</div>
-                          <div className="text-xs text-muted-foreground">+86 153 9761 5812</div>
-                        </div>
-                      </div>
-                      <a 
-                        href="https://wa.me/8615397615812" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-xs text-accent hover:underline"
-                      >
-                        {t("contact.social.open")}
-                      </a>
                     </div>
-
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-background/30 hover:bg-background/50 transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-green-600/20 flex items-center justify-center">
-                          <MessageCircle className="w-5 h-5 text-green-600" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium">WeChat/微信</div>
-                          <div className="text-xs text-muted-foreground">ChinaDetective</div>
-                        </div>
-                      </div>
-                      <button 
-                        type="button"
-                        onClick={() => {
-                          const dialog = document.getElementById('wechat-qr-dialog') as HTMLDialogElement;
-                          dialog?.showModal();
-                        }}
-                        className="text-xs text-accent hover:underline"
-                      >
-                        {t("contact.social.qr")}
-                      </button>
-                    </div>
-
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-background/30 hover:bg-background/50 transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
-                          <Send className="w-5 h-5 text-blue-500" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium">Telegram</div>
-                          <div className="text-xs text-muted-foreground">chinadetective8848_bot</div>
-                        </div>
-                      </div>
-                      <a 
-                        href="https://t.me/chinadetective8848_bot" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-xs text-accent hover:underline"
-                      >
-                        {t("contact.social.open")}
-                      </a>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
+
+            <Card className="border-border/70 bg-muted/30">
+              <CardContent className="p-6">
+                <h4 className="font-bold mb-4 flex items-center gap-2">
+                  <ShieldCheck className="w-5 h-5 text-blue-600" />
+                  {t("contact.promise.title")}
+                </h4>
+                <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-2.5 text-sm text-muted-foreground">
+                  {["item1", "item2", "item3", "item4"].map((item, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                      <span>{t(`contact.promise.${item}`)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-background/95 border-t border-border/50 py-12">
+      <footer className="bg-slate-950 text-slate-300 py-12">
         <div className="container mx-auto px-6">
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center">
-                  <Shield className="w-6 h-6 text-accent-foreground" />
+              <div className="flex items-center gap-2.5 mb-4">
+                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center">
+                  <MonitorSmartphone className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-xl font-bold text-gold-gradient">{t("footer.brand")}</span>
+                <span className="text-lg font-bold text-white">{t("footer.brand")}</span>
               </div>
-              <p className="text-sm text-muted-foreground" dangerouslySetInnerHTML={{ __html: t("footer.description") }} />
+              <p className="text-sm text-slate-400 leading-relaxed">{t("footer.description")}</p>
             </div>
 
             <div>
-              <h4 className="font-bold mb-4">{t("footer.links")}</h4>
+              <h4 className="font-bold mb-4 text-white">{t("footer.links")}</h4>
               <div className="space-y-2 text-sm">
-                <button onClick={() => scrollToSection("home")} className="text-muted-foreground hover:text-accent transition-colors text-left block">{t("nav.home")}</button>
-                <button onClick={() => scrollToSection("services")} className="text-muted-foreground hover:text-accent transition-colors text-left block">{t("nav.services")}</button>
-                <button onClick={() => scrollToSection("about")} className="text-muted-foreground hover:text-accent transition-colors text-left block">{t("nav.about")}</button>
-                <button onClick={() => scrollToSection("cases")} className="text-muted-foreground hover:text-accent transition-colors text-left block">{t("nav.cases")}</button>
-                <button onClick={() => scrollToSection("contact")} className="text-muted-foreground hover:text-accent transition-colors text-left block">{t("nav.contact")}</button>
-              </div>
-            </div>
-
-            <div>
-              <h4 className="font-bold mb-4">{language === "zh" ? "调查服务" : "Services"}</h4>
-              <div className="space-y-2 text-sm">
-                <button onClick={() => scrollToSection("services")} className="text-muted-foreground hover:text-accent transition-colors text-left block">{t("services.marriage.title")}</button>
-                <button onClick={() => scrollToSection("services")} className="text-muted-foreground hover:text-accent transition-colors text-left block">{t("services.business.title")}</button>
-                <button onClick={() => scrollToSection("services")} className="text-muted-foreground hover:text-accent transition-colors text-left block">{t("services.person.title")}</button>
-                <button onClick={() => scrollToSection("services")} className="text-muted-foreground hover:text-accent transition-colors text-left block">{t("services.evidence.title")}</button>
-                <button onClick={() => scrollToSection("services")} className="text-muted-foreground hover:text-accent transition-colors text-left block">{t("services.risk.title")}</button>
-              </div>
-            </div>
-
-            <div>
-              <h4 className="font-bold mb-4">{t("footer.legal")}</h4>
-              <div className="space-y-2 text-sm">
-                <a href="#" className="text-muted-foreground hover:text-accent transition-colors block">{t("footer.privacy")}</a>
-                <a href="#" className="text-muted-foreground hover:text-accent transition-colors block">{t("footer.terms")}</a>
-                <a href="#" className="text-muted-foreground hover:text-accent transition-colors block">{t("footer.disclaimer")}</a>
-                <div className="pt-4 mt-4 border-t border-border/50 space-y-3">
-                  <a 
-                    href="https://www.spy007.top/" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-accent transition-colors flex items-center gap-2"
+                {navItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => scrollToSection(item.id)}
+                    className="text-slate-400 hover:text-cyan-300 transition-colors text-left block"
                   >
-                    <Globe className="w-4 h-4" />
-                    <span>{language === "zh" ? "联系更多侦探: www.spy007.top" : "Contact More Detectives: www.spy007.top"}</span>
-                  </a>
-                  <a 
-                    href="https://server.xplol.cn/" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-accent transition-colors flex items-center gap-2"
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <h4 className="font-bold mb-4 text-white">{t("footer.services")}</h4>
+              <div className="space-y-2 text-sm">
+                {["sales", "assemble", "repair", "cctv", "network", "office"].map((key) => (
+                  <button
+                    key={key}
+                    onClick={() => scrollToSection("services")}
+                    className="text-slate-400 hover:text-cyan-300 transition-colors text-left block"
                   >
-                    <Globe className="w-4 h-4" />
-                    <span>{language === "zh" ? "全球服务器状态: server.xplol.cn" : "Global Server Status: server.xplol.cn"}</span>
-                  </a>
-                </div>
+                    {t(`services.${key}.title`)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <h4 className="font-bold mb-4 text-white">{t("footer.contact")}</h4>
+              <div className="space-y-2 text-sm text-slate-400">
+                <p className="flex items-start gap-2">
+                  <MapPinned className="w-4 h-4 mt-0.5 flex-shrink-0 text-cyan-300" />
+                  {t("footer.contact.address")}
+                </p>
+                <p className="flex items-start gap-2">
+                  <Clock className="w-4 h-4 mt-0.5 flex-shrink-0 text-cyan-300" />
+                  {t("footer.contact.hours")}
+                </p>
               </div>
             </div>
           </div>
 
-          <div className="border-t border-border/50 pt-8 text-center text-sm text-muted-foreground">
+          <div className="border-t border-slate-800 pt-8 text-center text-sm text-slate-500">
             <p>{t("footer.copyright")}</p>
           </div>
         </div>
       </footer>
-
-      {/* WeChat QR Code Dialog */}
-      <dialog id="wechat-qr-dialog" className="rounded-lg p-0 backdrop:bg-black/80">
-        <div className="bg-card p-6 rounded-lg max-w-sm">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold">{t("wechat.title")}</h3>
-            <button
-              onClick={() => {
-                const dialog = document.getElementById('wechat-qr-dialog') as HTMLDialogElement;
-                dialog?.close();
-              }}
-              className="text-muted-foreground hover:text-foreground text-2xl leading-none"
-            >
-              ×
-            </button>
-          </div>
-          <img
-            src="/images/wechat-qr-code.jpg"
-            alt="WeChat QR Code"
-            className="w-full rounded-lg mb-4"
-          />
-          <p className="text-sm text-muted-foreground text-center">
-            {t("wechat.instruction")}<span className="font-medium text-foreground">{t("wechat.id")}</span>
-          </p>
-        </div>
-      </dialog>
     </div>
   );
 }

@@ -8,22 +8,24 @@ interface SEOProps {
   ogImage?: string;
 }
 
+const SITE_URL = "https://www.xplol.cn";
+
 export default function SEO({ title, description, keywords, ogImage }: SEOProps) {
   const { language } = useLanguage();
 
-  const defaultTitle = language === "zh" 
-    ? "真相侦探社 - 专业私人侦探调查公司 | 婚姻调查_商业背景调查_寻人找人"
-    : "Truth Detective Agency - Private Investigator China | Relationship Investigation & Background Check";
+  const defaultTitle = language === "zh"
+    ? "金牛区三和易联电脑经营部 - 成都电脑销售_维修_监控安装_网络布线"
+    : "Sanhe Yilian Computer (Jinniu, Chengdu) - PC Sales, Repair, CCTV & Networking";
 
   const defaultDescription = language === "zh"
-    ? "真相侦探社是中国领先的私人侦探调查公司，专业提供婚姻出轨调查、商业背景调查、寻人找人、证据收集等服务。15年行业经验，500+成功案例，98%客户满意度，绝对保密。服务上海、北京、广州、深圳、成都等全国主要城市。24小时免费咨询热线：+86 153 9761 5812"
-    : "Truth Detective Agency is a leading private investigation company in China, specializing in relationship infidelity investigations, business background checks, missing person searches, and evidence collection. With 15+ years of experience, 500+ successful cases, and 98% client satisfaction, we guarantee absolute confidentiality. Serving major cities including Shanghai, Beijing, Guangzhou, Shenzhen, and Chengdu. Free 24/7 consultation: +86 153 9761 5812";
+    ? "金牛区三和易联电脑经营部位于四川省成都市金牛区，提供电脑整机销售、DIY组装升级、电脑维修维护、监控安防安装、网络综合布线、办公设备与耗材等服务，服务家庭用户与企业客户，明码标价，支持上门服务。"
+    : "Sanhe Yilian Computer is a computer store in Jinniu District, Chengdu, offering PC and laptop sales, custom builds, computer repair and maintenance, CCTV installation, network cabling, and office equipment & supplies for home and business customers. Transparent pricing, on-site service available.";
 
   const defaultKeywords = language === "zh"
-    ? "私人侦探,私家侦探,调查公司,婚姻调查,出轨调查,商业调查,背景调查,寻人找人,证据收集,中国侦探,上海侦探,北京侦探"
-    : "private investigator china,detective agency china,private detective,relationship investigation,infidelity investigation,business investigation,background check,missing person,evidence collection,shanghai detective,beijing detective";
+    ? "三和易联电脑,金牛区电脑维修,成都电脑店,金牛区电脑销售,电脑组装,监控安装,成都监控安防,网络布线,全屋WiFi,办公设备,打印机维修"
+    : "computer store chengdu,pc repair jinniu,laptop sales chengdu,custom pc build,cctv installation chengdu,network cabling,office equipment,printer repair,sanhe yilian computer";
 
-  const defaultOgImage = "https://www.xplol.cn/hero-bg.jpg";
+  const defaultOgImage = `${SITE_URL}/hero-bg.jpg`;
 
   const finalTitle = title || defaultTitle;
   const finalDescription = description || defaultDescription;
@@ -38,20 +40,20 @@ export default function SEO({ title, description, keywords, ogImage }: SEOProps)
     const updateMetaTag = (name: string, content: string, isProperty = false) => {
       const attribute = isProperty ? "property" : "name";
       let element = document.querySelector(`meta[${attribute}="${name}"]`);
-      
+
       if (!element) {
         element = document.createElement("meta");
         element.setAttribute(attribute, name);
         document.head.appendChild(element);
       }
-      
+
       element.setAttribute("content", content);
     };
 
     // Basic meta tags
     updateMetaTag("description", finalDescription);
     updateMetaTag("keywords", finalKeywords);
-    updateMetaTag("author", "Truth Detective Agency");
+    updateMetaTag("author", language === "zh" ? "金牛区三和易联电脑经营部" : "Sanhe Yilian Computer");
     updateMetaTag("robots", "index, follow");
 
     // Open Graph tags
@@ -60,7 +62,7 @@ export default function SEO({ title, description, keywords, ogImage }: SEOProps)
     updateMetaTag("og:image", finalOgImage, true);
     updateMetaTag("og:url", window.location.href, true);
     updateMetaTag("og:type", "website", true);
-    updateMetaTag("og:site_name", "Truth Detective Agency", true);
+    updateMetaTag("og:site_name", language === "zh" ? "金牛区三和易联电脑经营部" : "Sanhe Yilian Computer", true);
 
     // Twitter Card tags
     updateMetaTag("twitter:card", "summary_large_image");
@@ -79,7 +81,7 @@ export default function SEO({ title, description, keywords, ogImage }: SEOProps)
       linkZh.hreflang = "zh";
       document.head.appendChild(linkZh);
     }
-    linkZh.href = "https://www.xplol.cn/?lang=zh";
+    linkZh.href = `${SITE_URL}/?lang=zh`;
 
     if (!linkEn) {
       linkEn = document.createElement("link");
@@ -87,7 +89,7 @@ export default function SEO({ title, description, keywords, ogImage }: SEOProps)
       linkEn.hreflang = "en";
       document.head.appendChild(linkEn);
     }
-    linkEn.href = "https://www.xplol.cn/?lang=en";
+    linkEn.href = `${SITE_URL}/?lang=en`;
 
     if (!linkXDefault) {
       linkXDefault = document.createElement("link");
@@ -95,7 +97,7 @@ export default function SEO({ title, description, keywords, ogImage }: SEOProps)
       linkXDefault.hreflang = "x-default";
       document.head.appendChild(linkXDefault);
     }
-    linkXDefault.href = "https://www.xplol.cn/";
+    linkXDefault.href = `${SITE_URL}/`;
 
     // Canonical URL
     let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
@@ -104,7 +106,7 @@ export default function SEO({ title, description, keywords, ogImage }: SEOProps)
       canonical.rel = "canonical";
       document.head.appendChild(canonical);
     }
-    canonical.href = "https://www.xplol.cn/";
+    canonical.href = `${SITE_URL}/`;
 
   }, [finalTitle, finalDescription, finalKeywords, finalOgImage, language]);
 
