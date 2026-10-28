@@ -482,7 +482,18 @@ export default function Home() {
           </div>
 
           <div className="border-t border-slate-800 pt-8 text-center text-sm text-slate-500">
-            <p>{t("footer.copyright")}</p>
+            <p>
+              {t("footer.copyright")}
+              <span className="mx-2 text-slate-700" aria-hidden="true">|</span>
+              <a
+                href="https://beian.miit.gov.cn/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-cyan-300 transition-colors"
+              >
+                {t("footer.icp")}
+              </a>
+            </p>
           </div>
         </div>
       </footer>

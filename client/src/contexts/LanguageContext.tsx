@@ -115,6 +115,7 @@ const translations = {
     "footer.contact.address": "四川省成都市金牛区",
     "footer.contact.hours": "周一至周日 9:00 - 18:00",
     "footer.copyright": "© 2026 金牛区三和易联电脑经营部 版权所有",
+    "footer.icp": "蜀ICP备2026065870号",
 
     // Language switch
     "lang.switch": "EN",
@@ -223,6 +224,7 @@ const translations = {
     "footer.contact.address": "Jinniu District, Chengdu, Sichuan",
     "footer.contact.hours": "Mon - Sun 9:00 - 18:00",
     "footer.copyright": "© 2026 Jinniu District Sanhe Yilian Computer. All rights reserved.",
+    "footer.icp": "蜀ICP备2026065870号",
 
     // Language switch
     "lang.switch": "中文",
