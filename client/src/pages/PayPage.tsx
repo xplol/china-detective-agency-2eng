@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearch } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,16 +6,23 @@ import {
   MonitorSmartphone,
   ChevronLeft,
   Wallet,
+  MessageCircle,
   BadgeCheck,
   ShieldCheck,
   Info,
-  ReceiptText
+  ReceiptText,
+  Loader2
 } from "lucide-react";
+import QRCode from "qrcode";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import SEO from "@/components/SEO";
 import SiteFooter from "@/components/SiteFooter";
 import { findPricingItem } from "@/data/pricing";
+
+type PayMethod = "alipay" | "wechat";
+
+const GATEWAY = "https://pay.xplol.cn";
 
 export default function PayPage() {
   const { t } = useLanguage();
@@ -29,28 +36,79 @@ export default function PayPage() {
     if (/^[A-Z0-9]{8,32}$/.test(urlNo)) return urlNo;
     return "SYL" + Date.now().toString(36).toUpperCase() + Math.floor(Math.random() * 1296).toString(36).toUpperCase().padStart(2, "0");
   });
-  const VALID_UNITS = ["from", "perVisit", "perCamera"];
+  const [payMethod, setPayMethod] = useState<PayMethod>("alipay");
+  const [wxQr, setWxQr] = useState<string | null>(null);
+  const [qrConfirming, setQrConfirming] = useState(false);
+  const [wxPaid, setWxPaid] = useState(false);
+  const pollRef = useRef<number | null>(null);
+
   const unitText = useMemo(() => {
     if (!item) return "";
     const key = t(`pricing.${item.id}.unit`);
-    return VALID_UNITS.includes(key) ? t(`pricing.unit.${key}`) : "";
+    return ["from", "perVisit", "perCamera"].includes(key) ? t(`pricing.unit.${key}`) : "";
   }, [item, t]);
+
+  const showPaidBanner = paid || wxPaid;
+
+  // Poll WeChat order state while the QR code is on screen
+  useEffect(() => {
+    if (!wxQr || !item) return;
+    const no = orderNo;
+    const timer = window.setInterval(async () => {
+      try {
+        const res = await fetch(`${GATEWAY}/wxpay/query?no=${encodeURIComponent(no)}`);
+        const data = await res.json();
+        if (data.tradeState === "SUCCESS") {
+          setWxQr(null);
+          setWxPaid(true);
+        }
+      } catch {
+        // transient network error — keep polling
+      }
+    }, 2500);
+    pollRef.current = timer;
+    return () => window.clearInterval(timer);
+  }, [wxQr, item, orderNo]);
 
   const handlePay = async () => {
     if (!item) return;
+    let status: { alipay?: { configured?: boolean }; wxpay?: { configured?: boolean } } | null = null;
     try {
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), 5000);
-      const res = await fetch("https://pay.xplol.cn/alipay/status", { signal: ctrl.signal });
+      const res = await fetch(`${GATEWAY}/pay/status`, { signal: ctrl.signal });
       clearTimeout(timer);
-      const st = await res.json();
-      if (st.configured) {
-        // Hand off to the gateway, which signs and redirects to Alipay's cashier
-        window.location.href = `https://pay.xplol.cn/alipay/pay?item=${item.id}&no=${orderNo}`;
-        return;
-      }
+      status = await res.json();
     } catch {
       // gateway unreachable — fall through to the notice below
+    }
+
+    if (payMethod === "alipay") {
+      if (status?.alipay?.configured) {
+        // Hand off to the gateway, which signs and redirects to Alipay's cashier
+        window.location.href = `${GATEWAY}/alipay/pay?item=${item.id}&no=${orderNo}`;
+        return;
+      }
+    } else {
+      if (status?.wxpay?.configured) {
+        try {
+          const res = await fetch(`${GATEWAY}/wxpay/native?item=${item.id}&no=${orderNo}`);
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.message || "failed");
+          const dataUrl = await QRCode.toDataURL(data.codeUrl, { width: 480, margin: 1 });
+          setWxPaid(false);
+          setWxQr(dataUrl);
+          // Bring the QR panel into view
+          setTimeout(() => document.getElementById("wxpay-qr")?.scrollIntoView({ behavior: "smooth", block: "center" }), 50);
+          return;
+        } catch (e) {
+          toast(t("pay.notice.title"), {
+            description: e instanceof Error && e.message ? e.message : t("pay.notice.text"),
+            duration: 6000
+          });
+          return;
+        }
+      }
     }
     toast(t("pay.notice.title"), {
       description: t("pay.notice.text"),
@@ -93,7 +151,7 @@ export default function PayPage() {
             {item ? (
               <>
                 {/* Paid-return banner (return_url lands here with ?paid=1) */}
-                {paid && (
+                {(paid || wxPaid) && !wxQr && (
                   <Card className="border-green-200 bg-green-50 mb-4">
                     <CardContent className="p-5 flex items-start gap-3">
                       <BadgeCheck className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
@@ -139,27 +197,68 @@ export default function PayPage() {
                   </CardContent>
                 </Card>
 
-                {/* Payment method */}
+                {/* Payment methods */}
                 <Card className="border-border/70 mb-4">
                   <CardContent className="p-6">
                     <h2 className="font-bold mb-4">{t("pay.method")}</h2>
-                    <div className="flex items-center justify-between gap-3 p-3.5 rounded-xl border-2 border-blue-500 bg-blue-50/60">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center flex-shrink-0">
-                          <Wallet className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-sm">{t("pay.alipay")}</span>
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-600 text-white font-medium">
-                              {t("pay.alipay.recommended")}
-                            </span>
-                            <BadgeCheck className="w-4 h-4 text-blue-600" />
+                    <div className="space-y-3">
+                      <button
+                        type="button"
+                        onClick={() => setPayMethod("alipay")}
+                        className={`w-full text-left flex items-center justify-between gap-3 p-3.5 rounded-xl border-2 transition-colors ${
+                          payMethod === "alipay"
+                            ? "border-blue-500 bg-blue-50/60"
+                            : "border-border/70 bg-card hover:border-blue-200"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center flex-shrink-0">
+                            <Wallet className="w-5 h-5 text-white" />
                           </div>
-                          <div className="text-xs text-muted-foreground mt-0.5">{t("pay.alipay.desc")}</div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-sm">{t("pay.alipay")}</span>
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-600 text-white font-medium">
+                                {t("pay.alipay.recommended")}
+                              </span>
+                              <BadgeCheck className="w-4 h-4 text-blue-600" />
+                            </div>
+                            <div className="text-xs text-muted-foreground mt-0.5">{t("pay.alipay.desc")}</div>
+                          </div>
                         </div>
-                      </div>
-                      <div className="w-4.5 h-4.5 rounded-full border-[5px] border-blue-600 flex-shrink-0" aria-hidden="true" />
+                        <div
+                          className={`w-4.5 h-4.5 rounded-full flex-shrink-0 ${
+                            payMethod === "alipay" ? "border-[5px] border-blue-600" : "border border-muted-foreground/40"
+                          }`}
+                          aria-hidden="true"
+                        />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setPayMethod("wechat")}
+                        className={`w-full text-left flex items-center justify-between gap-3 p-3.5 rounded-xl border-2 transition-colors ${
+                          payMethod === "wechat"
+                            ? "border-green-500 bg-green-50/60"
+                            : "border-border/70 bg-card hover:border-green-200"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-green-600 flex items-center justify-center flex-shrink-0">
+                            <MessageCircle className="w-5 h-5 text-white" />
+                          </div>
+                          <div>
+                            <div className="font-bold text-sm">{t("pay.wechat")}</div>
+                            <div className="text-xs text-muted-foreground mt-0.5">{t("pay.wechat.desc")}</div>
+                          </div>
+                        </div>
+                        <div
+                          className={`w-4.5 h-4.5 rounded-full flex-shrink-0 ${
+                            payMethod === "wechat" ? "border-[5px] border-green-600" : "border border-muted-foreground/40"
+                          }`}
+                          aria-hidden="true"
+                        />
+                      </button>
                     </div>
                   </CardContent>
                 </Card>
@@ -168,14 +267,43 @@ export default function PayPage() {
                 <Button
                   size="lg"
                   onClick={handlePay}
-                  className="w-full h-12 bg-blue-600 hover:bg-blue-500 text-white text-base shadow-lg shadow-blue-600/20"
+                  className={`w-full h-12 text-white text-base shadow-lg ${
+                    payMethod === "wechat"
+                      ? "bg-green-600 hover:bg-green-500 shadow-green-600/20"
+                      : "bg-blue-600 hover:bg-blue-500 shadow-blue-600/20"
+                  }`}
                 >
                   {t("pay.payNow")} ¥{t(`pricing.${item.id}.price`)}
                   {unitText ? ` ${unitText}` : ""}
                 </Button>
 
+                {/* WeChat QR panel */}
+                {wxQr && item && (
+                  <Card id="wxpay-qr" className="border-green-200 mt-4">
+                    <CardContent className="p-6 text-center">
+                      <h3 className="font-bold mb-4 flex items-center justify-center gap-2">
+                        <MessageCircle className="w-5 h-5 text-green-600" />
+                        {t("pay.qr.title")}
+                      </h3>
+                      <img
+                        src={wxQr}
+                        alt={t("pay.qr.title")}
+                        className="w-52 h-52 mx-auto rounded-lg border border-border"
+                      />
+                      <p className="text-sm text-muted-foreground mt-4">{t("pay.qr.hint")}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {t("pay.order.no")}: {orderNo}
+                      </p>
+                      <p className="text-sm text-green-700 mt-3 flex items-center justify-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        {t("pay.qr.confirming")}
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Notice */}
-                <Card className="border-border/70 bg-muted/40 mt-4">
+                <Card className="border-border/70 bg-muted/30 mt-4">
                   <CardContent className="p-5">
                     <h3 className="font-bold mb-2 flex items-center gap-2 text-sm">
                       <Info className="w-4 h-4 text-blue-600" />

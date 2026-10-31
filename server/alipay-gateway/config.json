@@ -7,6 +7,16 @@
   "appCertPath": "/opt/alipay-gateway/keys/appCertPublicKey.crt",
   "alipayCertPath": "/opt/alipay-gateway/keys/alipayCertPublicKey_RSA2.crt",
   "alipayRootCertPath": "/opt/alipay-gateway/keys/alipayRootCert.crt",
+  "wxpay": {
+    "mchid": "1536138421",
+    "appId": "PENDING",
+    "notifyUrl": "https://pay.xplol.cn/wxpay/notify",
+    "certPath": "/opt/alipay-gateway/keys/wxpay/apiclient_cert.pem",
+    "privateKeyPath": "/opt/alipay-gateway/keys/wxpay/apiclient_key.pem",
+    "apiV3KeyPath": "/opt/alipay-gateway/keys/wxpay/apiv3.key",
+    "publicKeyPath": "/opt/alipay-gateway/keys/wxpay/pub_key.pem",
+    "publicKeyId": "PUB_KEY_ID_0115361384212026103100111716001404"
+  },
   "notifyUrl": "https://pay.xplol.cn/alipay/notify",
   "returnUrl": "https://pay.xplol.cn/alipay/return",
   "siteOrigin": "https://www.xplol.cn",

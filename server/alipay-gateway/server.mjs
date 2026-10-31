@@ -113,6 +113,38 @@ const configured = Boolean(
     (certMode ? appCertSn && rootSn && notifyVerifyKey : alipayPublicKey)
 );
 
+// --- WeChat Pay Native (API v3, 公钥模式) ----------------------------------
+
+function loadWxFiles() {
+  const wx = CONFIG.wxpay || {};
+  const read = (p) => (p && fs.existsSync(p) ? fs.readFileSync(p, "utf8") : null);
+  return {
+    mchid: wx.mchid || null,
+    appId: wx.appId && wx.appId !== "PENDING" ? wx.appId : null,
+    notifyUrl: wx.notifyUrl || null,
+    certPath: wx.certPath || null,
+    privateKey: read(wx.privateKeyPath),
+    certSerial: null,
+    apiV3Key: read(wx.apiV3KeyPath),
+    publicKey: read(wx.publicKeyPath),
+    publicKeyId: wx.publicKeyId || null,
+    items: wx.items || CONFIG.items
+  };
+}
+
+const wxpayRaw = loadWxFiles();
+let wxCertSerial = null;
+try {
+  if (wxpayRaw.privateKey && wxpayRaw.certPath && fs.existsSync(wxpayRaw.certPath)) {
+    wxCertSerial = new X509Certificate(fs.readFileSync(wxpayRaw.certPath)).serialNumber;
+  }
+} catch {}
+const wxConfigured = Boolean(
+  wxpayRaw.appId && wxpayRaw.mchid && wxpayRaw.privateKey && wxCertSerial && wxpayRaw.apiV3Key &&
+    wxpayRaw.publicKey && wxpayRaw.notifyUrl
+);
+const wxEnabled = Boolean(wxConfigured && wxpayRaw.items);
+
 // --- alipay helpers --------------------------------------------------------
 
 function cstTime() {
@@ -209,10 +241,94 @@ function findOrder(outTradeNo) {
 function json(res, code, obj) {
   res.writeHead(code, {
     "Content-Type": "application/json; charset=utf-8",
-    // The checkout page on www.xplol.cn probes /alipay/status cross-origin
+    // The checkout page on www.xplol.cn probes /pay/status cross-origin
     "Access-Control-Allow-Origin": "https://www.xplol.cn"
   });
   res.end(JSON.stringify(obj));
+}
+
+// --- WeChat Pay v3 helpers --------------------------------------------------
+
+const WX_API = "https://api.mch.weixin.qq.com";
+
+function wxAuthorization(method, urlPathWithQuery, bodyStr) {
+  const timestamp = Math.floor(Date.now() / 1000).toString();
+  const nonce = crypto.randomBytes(16).toString("hex");
+  const message = `${method}\n${urlPathWithQuery}\n${timestamp}\n${nonce}\n${bodyStr}\n`;
+  const signature = crypto
+    .createSign("RSA-SHA256")
+    .update(message, "utf8")
+    .sign(wxpayRaw.privateKey, "base64");
+  return (
+    `WECHATPAY2-SHA256-RSA2048 mchid="${wxpayRaw.mchid}",nonce_str="${nonce}",` +
+    `signature="${signature}",timestamp="${timestamp}",serial_no="${wxCertSerial}"`
+  );
+}
+
+async function wxApiCall(method, urlPathWithQuery, bodyObj) {
+  const bodyStr = bodyObj ? JSON.stringify(bodyObj) : "";
+  const res = await fetch(WX_API + urlPathWithQuery, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+      "User-Agent": "xplol-gateway",
+      "Authorization": wxAuthorization(method, urlPathWithQuery, bodyStr)
+    },
+    body: bodyStr || undefined
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error(data.message || data.code || `HTTP ${res.status}`);
+    err.code = data.code;
+    throw err;
+  }
+  return data;
+}
+
+async function wxCreateNativeOrder(itemId, outTradeNo) {
+  const item = wxpayRaw.items[itemId];
+  const total = Math.round(parseFloat(item.amount) * 100); // 单位: 分
+  const data = await wxApiCall("POST", "/v3/pay/transactions/native", {
+    appid: wxpayRaw.appId,
+    mchid: wxpayRaw.mchid,
+    description: item.name,
+    out_trade_no: outTradeNo,
+    notify_url: wxpayRaw.notifyUrl,
+    amount: { total, currency: "CNY" }
+  });
+  return data.code_url;
+}
+
+async function wxQueryOrder(outTradeNo) {
+  const path = `/v3/pay/transactions/out-trade-no/${encodeURIComponent(outTradeNo)}?mchid=${wxpayRaw.mchid}`;
+  return wxApiCall("GET", path);
+}
+
+function wxDecryptResource(resource) {
+  // APIv3: AES-256-GCM, key = apiv3key(32B), iv = resource.nonce,
+  // AAD = resource.associated_data, auth tag = last 16 bytes of ciphertext
+  const key = Buffer.from(wxpayRaw.apiV3Key, "utf8");
+  const buf = Buffer.from(resource.ciphertext, "base64");
+  const tag = buf.subarray(buf.length - 16);
+  const data = buf.subarray(0, buf.length - 16);
+  const decipher = crypto.createDecipheriv("aes-256-gcm", key, Buffer.from(resource.nonce, "utf8"));
+  decipher.setAAD(Buffer.from(resource.associated_data || "", "utf8"));
+  decipher.setAuthTag(tag);
+  return Buffer.concat([decipher.update(data), decipher.final()]).toString("utf8");
+}
+
+function wxVerifyNotify(headers, rawBody) {
+  // 公钥模式: verify with the WeChat Pay public key (pub_key.pem)
+  const message = `${headers["wechatpay-timestamp"]}\n${headers["wechatpay-nonce"]}\n${rawBody}\n`;
+  try {
+    return crypto
+      .createVerify("RSA-SHA256")
+      .update(message, "utf8")
+      .verify(wxpayRaw.publicKey, headers["wechatpay-signature"], "base64");
+  } catch {
+    return false;
+  }
 }
 
 function readBody(req) {
@@ -270,6 +386,94 @@ const server = http.createServer(async (req, res) => {
     appendOrder({ outTradeNo, event: "notify_rejected", signedOk, known: Boolean(known), amountOk, tradeStatus, at: cstTime() });
     res.writeHead(200, { "Content-Type": "text/plain" });
     return res.end("fail");
+  }
+
+  // Unified status for the checkout page (alipay + wechat)
+  if (url.pathname === "/pay/status") {
+    return json(res, 200, {
+      alipay: { configured, mode: certMode ? "cert" : "public_key" },
+      wxpay: { configured: wxEnabled }
+    });
+  }
+
+  // WeChat Native pay: create order, return code_url for the QR code
+  if (url.pathname === "/wxpay/native" && req.method === "GET") {
+    const itemId = url.searchParams.get("item") || "";
+    if (!wxEnabled) return json(res, 503, { error: "not_configured", message: "微信支付配置中，请使用支付宝或到店支付" });
+    if (!wxpayRaw.items[itemId]) return json(res, 404, { error: "unknown_item" });
+    const clientNo = url.searchParams.get("no") || "";
+    const outTradeNo = /^[A-Z0-9]{8,32}$/.test(clientNo)
+      ? clientNo
+      : "SYL" + Date.now().toString(36).toUpperCase() + crypto.randomBytes(3).toString("hex").toUpperCase();
+    try {
+      const codeUrl = await wxCreateNativeOrder(itemId, outTradeNo);
+      appendOrder({
+        outTradeNo,
+        itemId,
+        channel: "wxpay",
+        amount: wxpayRaw.items[itemId].amount,
+        subject: wxpayRaw.items[itemId].name,
+        status: "created",
+        createdAt: cstTime()
+      });
+      return json(res, 200, { codeUrl, outTradeNo });
+    } catch (e) {
+      appendOrder({ outTradeNo, itemId, event: "wxpay_create_failed", error: String(e.message || e), at: cstTime() });
+      return json(res, 502, { error: "create_failed", message: String(e.message || e) });
+    }
+  }
+
+  // WeChat Native pay: poll order state (called by the checkout page)
+  if (url.pathname === "/wxpay/query" && req.method === "GET") {
+    const no = url.searchParams.get("no") || "";
+    if (!wxEnabled) return json(res, 503, { error: "not_configured" });
+    try {
+      const data = await wxQueryOrder(no);
+      return json(res, 200, { tradeState: data.trade_state || "UNKNOWN", transactionId: data.transaction_id || null });
+    } catch {
+      // ORDER_NOT_EXIST before first scan is normal
+      return json(res, 200, { tradeState: "NOTPAY" });
+    }
+  }
+
+  // WeChat Native pay: async payment notification
+  if (url.pathname === "/wxpay/notify" && req.method === "POST") {
+    const rawBody = await readBody(req);
+    const headers = Object.fromEntries(Object.entries(req.headers).map(([k, v]) => [k.toLowerCase(), String(v)]));
+    const signedOk = wxVerifyNotify(headers, rawBody);
+    if (!signedOk) {
+      appendOrder({ event: "wxpay_notify_bad_signature", at: cstTime() });
+      res.writeHead(500, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ code: "FAIL", message: "验签失败" }));
+    }
+    try {
+      const payload = JSON.parse(rawBody);
+      const decrypted = JSON.parse(wxDecryptResource(payload.resource));
+      const outTradeNo = decrypted.out_trade_no || "";
+      const tradeState = decrypted.trade_state || "";
+      const order = findOrder(outTradeNo);
+      const amountOk = Boolean(
+        order && decrypted.amount && Number(decrypted.amount.total) === Math.round(Number(order.amount) * 100)
+      );
+      if (order && amountOk && (tradeState === "SUCCESS" || tradeState === "TRADE_SUCCESS")) {
+        appendOrder({
+          ...order,
+          status: "paid",
+          channel: "wxpay",
+          transactionId: decrypted.transaction_id || null,
+          payerId: decrypted.payer ? decrypted.payer.openid : null,
+          updatedAt: cstTime()
+        });
+        appendOrder({ outTradeNo, event: "wxpay_notify", tradeState, at: cstTime() });
+        res.writeHead(200, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ code: "SUCCESS", message: "成功" }));
+      }
+      appendOrder({ outTradeNo, event: "wxpay_notify_rejected", known: Boolean(order), amountOk, tradeState, at: cstTime() });
+    } catch (e) {
+      appendOrder({ event: "wxpay_notify_decrypt_failed", error: String(e.message || e), at: cstTime() });
+    }
+    res.writeHead(500, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({ code: "FAIL", message: "失败" }));
   }
 
   if (url.pathname === "/alipay/return" && req.method === "GET") {
