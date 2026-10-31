@@ -6,6 +6,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { X509Certificate } from "node:crypto";
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const CONFIG = JSON.parse(fs.readFileSync(path.join(ROOT, "config.json"), "utf8"));
@@ -53,7 +54,55 @@ function loadAlipayPublicKey() {
 
 const privateKey = loadPrivateKey();
 const alipayPublicKey = loadAlipayPublicKey();
-const configured = Boolean(privateKey && alipayPublicKey && CONFIG.appId);
+
+// --- 公钥证书模式 (certificate signing mode) --------------------------------
+// Mirrors Alipay's SDK: app_cert_sn = md5(reversed-RFC2253-issuer + serial-hex),
+// alipay_root_cert_sn = md5("_"-joined cert sns of the root bundle).
+
+function loadCert(p) {
+  if (!p || !fs.existsSync(p)) return null;
+  try {
+    return new X509Certificate(fs.readFileSync(p));
+  } catch {
+    return null;
+  }
+}
+
+function certSn(cert) {
+  // Node's .issuer is RFC2253 (most-specific first); Alipay expects the
+  // comma-separated order reversed, concatenated with the hex serial.
+  const issuer = cert.issuer.split(",").reverse().map((s) => s.trim()).join(",");
+  const serial = BigInt("0x" + cert.serialNumber).toString(16);
+  return crypto.createHash("md5").update(issuer + serial, "utf8").digest("hex");
+}
+
+function rootCertSn(bundlePem) {
+  const chunks = bundlePem
+    .split(/(?=-----BEGIN CERTIFICATE-----)/)
+    .filter((c) => c.includes("BEGIN CERTIFICATE"));
+  const sns = chunks.map((c) => certSn(new X509Certificate(c.trim())));
+  return crypto.createHash("md5").update(sns.join("_"), "utf8").digest("hex");
+}
+
+const appCert = loadCert(CONFIG.appCertPath);
+const alipayCert = loadCert(CONFIG.alipayCertPath);
+let rootSn = null;
+try {
+  rootSn = fs.existsSync(CONFIG.alipayRootCertPath)
+    ? rootCertSn(fs.readFileSync(CONFIG.alipayRootCertPath, "utf8"))
+    : null;
+} catch {
+  rootSn = null;
+}
+const certMode = Boolean(appCert && alipayCert && rootSn);
+const notifyVerifyKey = certMode ? alipayCert.publicKey : alipayPublicKey;
+
+const configured = Boolean(
+  privateKey &&
+    CONFIG.appId &&
+    (certMode ? appCert.certSn && rootSn && notifyVerifyKey : alipayPublicKey)
+);
+if (appCert) appCert.certSn = certSn(appCert);
 
 // --- alipay helpers --------------------------------------------------------
 
@@ -100,6 +149,10 @@ function buildPayRedirect(itemId, clientNo) {
       subject: item.name
     })
   };
+  if (certMode) {
+    params.app_cert_sn = appCert.certSn;
+    params.alipay_root_cert_sn = rootSn;
+  }
   const sign = crypto
     .createSign("RSA-SHA256")
     .update(signContent(params, ["sign"]), "utf8")
@@ -120,7 +173,7 @@ function verifyNotify(params) {
     return crypto
       .createVerify("RSA-SHA256")
       .update(content, "utf8")
-      .verify(alipayPublicKey, params.sign, "base64");
+      .verify(notifyVerifyKey, params.sign, "base64");
   } catch {
     return false;
   }
@@ -165,7 +218,11 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (url.pathname === "/alipay/status") {
-    return json(res, 200, { configured, appId: CONFIG.appId ? CONFIG.appId.slice(0, 6) + "***" : null });
+    return json(res, 200, {
+      configured,
+      mode: certMode ? "cert" : "public_key",
+      appId: CONFIG.appId ? CONFIG.appId.slice(0, 6) + "***" : null
+    });
   }
 
   if (url.pathname === "/alipay/pay" && req.method === "GET") {
@@ -212,5 +269,7 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(CONFIG.port, "127.0.0.1", () => {
-  console.log(`[alipay-gateway] listening on 127.0.0.1:${CONFIG.port}, configured=${configured}`);
+  console.log(
+    `[alipay-gateway] listening on 127.0.0.1:${CONFIG.port}, configured=${configured}, mode=${certMode ? "cert" : "public_key"}`
+  );
 });
