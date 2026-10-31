@@ -17,6 +17,8 @@
     "publicKeyPath": "/opt/alipay-gateway/keys/wxpay/pub_key.pem",
     "publicKeyId": "PUB_KEY_ID_0115361384212026103100111716001404"
   },
+  "gatewaySecretPath": "/opt/alipay-gateway/keys/gateway-secret.txt",
+  "allowedOrigins": ["https://baseview.xp812.cn"],
   "notifyUrl": "https://pay.xplol.cn/alipay/notify",
   "returnUrl": "https://pay.xplol.cn/alipay/return",
   "siteOrigin": "https://www.xplol.cn",

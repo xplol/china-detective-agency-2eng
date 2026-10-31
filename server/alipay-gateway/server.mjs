@@ -145,6 +145,23 @@ const wxConfigured = Boolean(
 );
 const wxEnabled = Boolean(wxConfigured && wxpayRaw.items);
 
+// --- external order API (HMAC-secured, for partner sites like baseview) -----
+
+const gatewaySecret = CONFIG.gatewaySecretPath && fs.existsSync(CONFIG.gatewaySecretPath)
+  ? fs.readFileSync(CONFIG.gatewaySecretPath, "utf8").trim()
+  : null;
+const allowedOrigins = Array.isArray(CONFIG.allowedOrigins) ? CONFIG.allowedOrigins : [];
+
+function hmacHex(content) {
+  return crypto.createHmac("sha256", gatewaySecret).update(content, "utf8").digest("hex");
+}
+
+function safeEqualHex(a, b) {
+  const ba = Buffer.from(String(a || "").toLowerCase());
+  const bb = Buffer.from(String(b || "").toLowerCase());
+  return ba.length === bb.length && crypto.timingSafeEqual(ba, bb);
+}
+
 // --- alipay helpers --------------------------------------------------------
 
 function cstTime() {
@@ -160,19 +177,11 @@ function signContent(params, exclude) {
     .join("&");
 }
 
-function buildPayRedirect(itemId, clientNo) {
-  const item = CONFIG.items[itemId];
-  const outTradeNo = clientNo ||
-    "SYL" + Date.now().toString(36).toUpperCase() + crypto.randomBytes(3).toString("hex").toUpperCase();
-  const record = {
-    outTradeNo,
-    itemId,
-    amount: item.amount,
-    subject: item.name,
-    status: "created",
-    createdAt: cstTime()
-  };
-  const returnUrl = `${CONFIG.returnUrl}?paid=1&no=${encodeURIComponent(outTradeNo)}`;
+function genOrderNo() {
+  return "SYL" + Date.now().toString(36).toUpperCase() + crypto.randomBytes(3).toString("hex").toUpperCase();
+}
+
+function buildPagePayUrl({ outTradeNo, amount, subject, returnUrl }) {
   const params = {
     app_id: CONFIG.appId,
     method: "alipay.trade.page.pay",
@@ -186,8 +195,8 @@ function buildPayRedirect(itemId, clientNo) {
     biz_content: JSON.stringify({
       out_trade_no: outTradeNo,
       product_code: "FAST_INSTANT_TRADE_PAY",
-      total_amount: item.amount,
-      subject: item.name
+      total_amount: amount,
+      subject
     })
   };
   if (certMode) {
@@ -201,11 +210,7 @@ function buildPayRedirect(itemId, clientNo) {
   const qs = Object.keys(params)
     .map((k) => `${k}=${encodeURIComponent(params[k])}`)
     .join("&");
-  appendOrder(record);
-  return {
-    location: `${CONFIG.gateway}?${qs}&sign=${encodeURIComponent(sign)}`,
-    outTradeNo
-  };
+  return `${CONFIG.gateway}?${qs}&sign=${encodeURIComponent(sign)}`;
 }
 
 function verifyNotify(params) {
@@ -286,13 +291,12 @@ async function wxApiCall(method, urlPathWithQuery, bodyObj) {
   return data;
 }
 
-async function wxCreateNativeOrder(itemId, outTradeNo) {
-  const item = wxpayRaw.items[itemId];
-  const total = Math.round(parseFloat(item.amount) * 100); // 单位: 分
+async function wxCreateNativeOrder({ outTradeNo, amountYuan, subject }) {
+  const total = Math.round(parseFloat(amountYuan) * 100); // 单位: 分
   const data = await wxApiCall("POST", "/v3/pay/transactions/native", {
     appid: wxpayRaw.appId,
     mchid: wxpayRaw.mchid,
-    description: item.name,
+    description: subject,
     out_trade_no: outTradeNo,
     notify_url: wxpayRaw.notifyUrl,
     amount: { total, currency: "CNY" }
@@ -342,6 +346,26 @@ function readBody(req) {
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://localhost");
 
+  // CORS for allow-listed partner origins (e.g. baseview.xp812.cn)
+  const originHeader = req.headers.origin;
+  const originAllowed = Boolean(originHeader && allowedOrigins.includes(originHeader));
+  if (originAllowed) {
+    res.setHeader("Access-Control-Allow-Origin", originHeader);
+    res.setHeader("Vary", "Origin");
+  }
+  if (req.method === "OPTIONS") {
+    if (originAllowed) {
+      res.writeHead(204, {
+        "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Max-Age": "600"
+      });
+    } else {
+      res.writeHead(204);
+    }
+    return res.end();
+  }
+
   if (url.pathname === "/healthz") {
     return json(res, 200, { ok: true, configured });
   }
@@ -363,7 +387,24 @@ const server = http.createServer(async (req, res) => {
     // Trust the checkout page's displayed order number so both match Alipay's
     // out_trade_no; fall back to a locally generated one when absent.
     const clientNo = url.searchParams.get("no") || "";
-    const { location } = buildPayRedirect(itemId, /^[A-Z0-9]{8,32}$/.test(clientNo) ? clientNo : null);
+    const outTradeNo = /^[A-Z0-9]{8,32}$/.test(clientNo) ? clientNo : genOrderNo();
+    const item = CONFIG.items[itemId];
+    const order = {
+      outTradeNo,
+      itemId,
+      amount: item.amount,
+      subject: item.name,
+      status: "created",
+      createdAt: cstTime()
+    };
+    const returnUrl = `${CONFIG.returnUrl}?paid=1&no=${encodeURIComponent(outTradeNo)}`;
+    const location = buildPagePayUrl({
+      outTradeNo,
+      amount: order.amount,
+      subject: order.subject,
+      returnUrl
+    });
+    appendOrder(order);
     res.writeHead(302, { Location: location });
     return res.end();
   }
@@ -406,7 +447,7 @@ const server = http.createServer(async (req, res) => {
       ? clientNo
       : "SYL" + Date.now().toString(36).toUpperCase() + crypto.randomBytes(3).toString("hex").toUpperCase();
     try {
-      const codeUrl = await wxCreateNativeOrder(itemId, outTradeNo);
+      const codeUrl = await wxCreateNativeOrder({ outTradeNo, amountYuan: wxpayRaw.items[itemId].amount, subject: wxpayRaw.items[itemId].name });
       appendOrder({
         outTradeNo,
         itemId,
@@ -474,6 +515,93 @@ const server = http.createServer(async (req, res) => {
     }
     res.writeHead(500, { "Content-Type": "application/json" });
     return res.end(JSON.stringify({ code: "FAIL", message: "失败" }));
+  }
+
+  // --- External order API (HMAC-signed, for partner sites) ------------------
+
+  // Create a custom-order payment: alipay -> {payUrl}; wechat -> {codeUrl}.
+  // sign = HMAC-SHA256(secret, `${no}|${amount}|${title}`) hex lowercase.
+  if (url.pathname === "/order/create" && req.method === "POST") {
+    if (!gatewaySecret) return json(res, 503, { error: "not_configured" });
+    const rawBody = await readBody(req);
+    let body;
+    try {
+      body = JSON.parse(rawBody);
+    } catch {
+      return json(res, 400, { error: "bad_json" });
+    }
+    const channel = body.channel;
+    const no = String(body.no || "");
+    const title = String(body.title || "").trim();
+    const amount = String(body.amount || "").trim();
+    const noOk = /^[A-Za-z0-9_-]{6,40}$/.test(no);
+    const amountOk =
+      /^(\d{1,5})(\.\d{1,2})?$/.test(amount) &&
+      parseFloat(amount) >= 0.01 &&
+      parseFloat(amount) <= 10000;
+    const titleOk = title.length >= 1 && title.length <= 50;
+    if (!noOk || !amountOk || !titleOk) return json(res, 400, { error: "bad_params" });
+    if (!["alipay", "wechat"].includes(channel)) return json(res, 400, { error: "bad_channel" });
+    if (!safeEqualHex(hmacHex(`${no}|${amount}|${title}`), body.sign)) {
+      return json(res, 403, { error: "bad_sign" });
+    }
+    const amountFixed = parseFloat(amount).toFixed(2);
+    const outTradeNo = /^[A-Za-z0-9_-]{6,40}$/.test(no) ? no : genOrderNo();
+    // Optional post-payment landing page, restricted to allow-listed origins
+    const returnUrl =
+      typeof body.returnUrl === "string" && allowedOrigins.some((o) => body.returnUrl.startsWith(o + "/"))
+        ? body.returnUrl
+        : `${CONFIG.returnUrl}?paid=1&no=${encodeURIComponent(outTradeNo)}`;
+
+    if (channel === "alipay") {
+      if (!configured) return json(res, 503, { error: "not_configured" });
+      const payUrl = buildPagePayUrl({ outTradeNo, amount: amountFixed, subject: title, returnUrl });
+      appendOrder({
+        outTradeNo,
+        channel,
+        source: "api",
+        amount: amountFixed,
+        subject: title,
+        status: "created",
+        createdAt: cstTime()
+      });
+      return json(res, 200, { outTradeNo, payUrl });
+    }
+
+    if (!wxEnabled) return json(res, 503, { error: "not_configured" });
+    try {
+      const codeUrl = await wxCreateNativeOrder({ outTradeNo, amountYuan: amountFixed, subject: title });
+      appendOrder({
+        outTradeNo,
+        channel,
+        source: "api",
+        amount: amountFixed,
+        subject: title,
+        status: "created",
+        createdAt: cstTime()
+      });
+      return json(res, 200, { outTradeNo, codeUrl });
+    } catch (e) {
+      appendOrder({ outTradeNo, event: "wxpay_create_failed", error: String(e.message || e), at: cstTime() });
+      return json(res, 502, { error: "create_failed", message: String(e.message || e) });
+    }
+  }
+
+  // Query an order's payment state (sign = HMAC-SHA256(secret, no) hex)
+  if (url.pathname === "/order/status" && req.method === "GET") {
+    if (!gatewaySecret) return json(res, 503, { error: "not_configured" });
+    const no = url.searchParams.get("no") || "";
+    const sign = url.searchParams.get("sign") || "";
+    if (!/^[A-Za-z0-9_-]{6,40}$/.test(no)) return json(res, 400, { error: "bad_params" });
+    if (!safeEqualHex(hmacHex(no), sign)) return json(res, 403, { error: "bad_sign" });
+    const order = findOrder(no);
+    return json(res, 200, {
+      known: Boolean(order),
+      paid: Boolean(order && order.status === "paid"),
+      status: order ? order.status : null,
+      channel: order ? order.channel : null,
+      amount: order ? order.amount : null
+    });
   }
 
   if (url.pathname === "/alipay/return" && req.method === "GET") {
