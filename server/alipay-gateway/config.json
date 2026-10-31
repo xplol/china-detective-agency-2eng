@@ -9,7 +9,7 @@
   "alipayRootCertPath": "/opt/alipay-gateway/keys/alipayRootCert.crt",
   "wxpay": {
     "mchid": "1536138421",
-    "appId": "PENDING",
+    "appId": "wx5929ddd79dd789e8",
     "notifyUrl": "https://pay.xplol.cn/wxpay/notify",
     "certPath": "/opt/alipay-gateway/keys/wxpay/apiclient_cert.pem",
     "privateKeyPath": "/opt/alipay-gateway/keys/wxpay/apiclient_key.pem",
