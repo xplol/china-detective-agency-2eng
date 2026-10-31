@@ -69,19 +69,28 @@ function loadCert(p) {
 }
 
 function certSn(cert) {
-  // Node's .issuer is RFC2253 (most-specific first); Alipay expects the
-  // comma-separated order reversed, concatenated with the hex serial.
-  const issuer = cert.issuer.split(",").reverse().map((s) => s.trim()).join(",");
-  const serial = BigInt("0x" + cert.serialNumber).toString(16);
-  return crypto.createHash("md5").update(issuer + serial, "utf8").digest("hex");
+  // Official AntCertificationUtil.getCertSN: md5(RFC2253 issuer + DECIMAL serial).
+  // Java's X500Principal.getName() is RFC2253 (most-specific segment first, ","
+  // separated); Node's .issuer lists segments in certificate order joined with
+  // "\n" — reverse the segments and rejoin with commas to match byte-for-byte.
+  const issuer = cert.issuer.split("\n").reverse().join(",");
+  const input = `${issuer}${BigInt("0x" + cert.serialNumber)}`;
+  return crypto.createHash("md5").update(input, "utf8").digest("hex");
 }
 
 function rootCertSn(bundlePem) {
+  // Official AntCertificationUtil.getRootCertSN: keep certs whose SigAlgOID
+  // starts with 1.2.840.113549.1.1 (any RSA variant — SHA1 AND SHA256),
+  // join their cert SNs with "_" — no final md5.
+  const RSA_OID_PREFIX = Buffer.from([0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01]);
   const chunks = bundlePem
     .split(/(?=-----BEGIN CERTIFICATE-----)/)
     .filter((c) => c.includes("BEGIN CERTIFICATE"));
-  const sns = chunks.map((c) => certSn(new X509Certificate(c.trim())));
-  return crypto.createHash("md5").update(sns.join("_"), "utf8").digest("hex");
+  const sns = chunks
+    .map((c) => new X509Certificate(c.trim()))
+    .filter((cert) => cert.raw.includes(RSA_OID_PREFIX))
+    .map((cert) => certSn(cert));
+  return sns.join("_");
 }
 
 const appCert = loadCert(CONFIG.appCertPath);
@@ -96,13 +105,13 @@ try {
 }
 const certMode = Boolean(appCert && alipayCert && rootSn);
 const notifyVerifyKey = certMode ? alipayCert.publicKey : alipayPublicKey;
+const appCertSn = appCert ? certSn(appCert) : null;
 
 const configured = Boolean(
   privateKey &&
     CONFIG.appId &&
-    (certMode ? appCert.certSn && rootSn && notifyVerifyKey : alipayPublicKey)
+    (certMode ? appCertSn && rootSn && notifyVerifyKey : alipayPublicKey)
 );
-if (appCert) appCert.certSn = certSn(appCert);
 
 // --- alipay helpers --------------------------------------------------------
 
@@ -150,7 +159,7 @@ function buildPayRedirect(itemId, clientNo) {
     })
   };
   if (certMode) {
-    params.app_cert_sn = appCert.certSn;
+    params.app_cert_sn = appCertSn;
     params.alipay_root_cert_sn = rootSn;
   }
   const sign = crypto
