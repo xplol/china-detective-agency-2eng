@@ -207,7 +207,11 @@ function findOrder(outTradeNo) {
 // --- http server -----------------------------------------------------------
 
 function json(res, code, obj) {
-  res.writeHead(code, { "Content-Type": "application/json; charset=utf-8" });
+  res.writeHead(code, {
+    "Content-Type": "application/json; charset=utf-8",
+    // The checkout page on www.xplol.cn probes /alipay/status cross-origin
+    "Access-Control-Allow-Origin": "https://www.xplol.cn"
+  });
   res.end(JSON.stringify(obj));
 }
 
