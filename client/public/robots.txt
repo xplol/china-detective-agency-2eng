@@ -1,5 +1,5 @@
 # Robots.txt for www.xplol.cn
-# 金牛区三和易联电脑经营部官方页面 (Official site of Sanhe Yilian Computer, Jinniu District, Chengdu)
+# 金牛区三和益联电脑经营部官方页面 (Official site of Sanhe Yilian Computer, Jinniu District, Chengdu)
 
 # Allow all search engines to crawl the entire site
 User-agent: *

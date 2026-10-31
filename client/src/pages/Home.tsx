@@ -1,4 +1,4 @@
-/* 三和易联电脑经营部官方页面 - Modern Tech Blue Theme
+/* 三和益联电脑经营部官方页面 - Modern Tech Blue Theme
  * Light business style with dark hero, bilingual zh/en
  */
 
@@ -289,7 +289,7 @@ export default function Home() {
             <div className="relative">
               <img
                 src="/about-store.jpg"
-                alt={language === "zh" ? "三和易联电脑维修工作台" : "Sanhe Yilian Computer repair workbench"}
+                alt={language === "zh" ? "三和益联电脑维修工作台" : "Sanhe Yilian Computer repair workbench"}
                 className="rounded-2xl shadow-xl w-full object-cover aspect-[4/3]"
                 loading="lazy"
               />

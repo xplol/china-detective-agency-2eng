@@ -52,7 +52,7 @@ const translations = {
 
     // About Section
     "about.title": "关于我们",
-    "about.p1": "金牛区三和易联电脑经营部位于四川省成都市金牛区，是一家面向家庭用户、企业和商铺的电脑零售与技术服务门店，提供从购机选型、装机升级到维修维护、监控组网的全方位服务。",
+    "about.p1": "金牛区三和益联电脑经营部位于四川省成都市金牛区，是一家面向家庭用户、企业和商铺的电脑零售与技术服务门店，提供从购机选型、装机升级到维修维护、监控组网的全方位服务。",
     "about.p2": "我们坚持「诚信经营、技术立身」，以透明的价格和扎实的技术为每一位客户解决实际问题，努力成为您身边长期信赖的 IT 服务伙伴。",
     "about.point1.title": "实体经营",
     "about.point1.desc": "线下门店，面对面沟通更放心",
@@ -107,14 +107,14 @@ const translations = {
     "contact.promise.item4": "服务项目建档，提供售后跟进",
 
     // Footer
-    "footer.brand": "三和易联电脑",
-    "footer.description": "金牛区三和易联电脑经营部 —— 电脑销售、维修维护、监控安防与网络工程一站式服务。",
+    "footer.brand": "三和益联电脑",
+    "footer.description": "金牛区三和益联电脑经营部 —— 电脑销售、维修维护、监控安防与网络工程一站式服务。",
     "footer.links": "快速链接",
     "footer.services": "服务项目",
     "footer.contact": "联系信息",
     "footer.contact.address": "四川省成都市金牛区",
     "footer.contact.hours": "周一至周日 9:00 - 18:00",
-    "footer.copyright": "© 2026 金牛区三和易联电脑经营部 版权所有",
+    "footer.copyright": "© 2026 金牛区三和益联电脑经营部 版权所有",
     "footer.icp": "蜀ICP备2026065870号",
 
     // Language switch

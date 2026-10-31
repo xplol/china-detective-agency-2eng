@@ -6,7 +6,7 @@ export default function StructuredData() {
   const storeData = {
     "@context": "https://schema.org",
     "@type": "ComputerStore",
-    "name": language === "zh" ? "金牛区三和易联电脑经营部" : "Sanhe Yilian Computer (Jinniu District)",
+    "name": language === "zh" ? "金牛区三和益联电脑经营部" : "Sanhe Yilian Computer (Jinniu District)",
     "description": language === "zh"
       ? "位于成都市金牛区的电脑零售与技术服务门店，提供电脑整机销售、组装升级、维修维护、监控安防安装、网络综合布线与办公设备耗材等服务。"
       : "A computer retail and service store in Jinniu District, Chengdu, offering PC sales, custom builds, repair and maintenance, CCTV installation, network cabling, and office equipment & supplies.",
@@ -33,7 +33,7 @@ export default function StructuredData() {
     "serviceType": language === "zh" ? "电脑销售与维修服务" : "Computer Sales & Repair Services",
     "provider": {
       "@type": "ComputerStore",
-      "name": language === "zh" ? "金牛区三和易联电脑经营部" : "Sanhe Yilian Computer (Jinniu District)"
+      "name": language === "zh" ? "金牛区三和益联电脑经营部" : "Sanhe Yilian Computer (Jinniu District)"
     },
     "areaServed": {
       "@type": "City",

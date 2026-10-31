@@ -14,15 +14,15 @@ export default function SEO({ title, description, keywords, ogImage }: SEOProps)
   const { language } = useLanguage();
 
   const defaultTitle = language === "zh"
-    ? "金牛区三和易联电脑经营部 - 成都电脑销售_维修_监控安装_网络布线"
+    ? "金牛区三和益联电脑经营部 - 成都电脑销售_维修_监控安装_网络布线"
     : "Sanhe Yilian Computer (Jinniu, Chengdu) - PC Sales, Repair, CCTV & Networking";
 
   const defaultDescription = language === "zh"
-    ? "金牛区三和易联电脑经营部位于四川省成都市金牛区，提供电脑整机销售、DIY组装升级、电脑维修维护、监控安防安装、网络综合布线、办公设备与耗材等服务，服务家庭用户与企业客户，明码标价，支持上门服务。"
+    ? "金牛区三和益联电脑经营部位于四川省成都市金牛区，提供电脑整机销售、DIY组装升级、电脑维修维护、监控安防安装、网络综合布线、办公设备与耗材等服务，服务家庭用户与企业客户，明码标价，支持上门服务。"
     : "Sanhe Yilian Computer is a computer store in Jinniu District, Chengdu, offering PC and laptop sales, custom builds, computer repair and maintenance, CCTV installation, network cabling, and office equipment & supplies for home and business customers. Transparent pricing, on-site service available.";
 
   const defaultKeywords = language === "zh"
-    ? "三和易联电脑,金牛区电脑维修,成都电脑店,金牛区电脑销售,电脑组装,监控安装,成都监控安防,网络布线,全屋WiFi,办公设备,打印机维修"
+    ? "三和益联电脑,金牛区电脑维修,成都电脑店,金牛区电脑销售,电脑组装,监控安装,成都监控安防,网络布线,全屋WiFi,办公设备,打印机维修"
     : "computer store chengdu,pc repair jinniu,laptop sales chengdu,custom pc build,cctv installation chengdu,network cabling,office equipment,printer repair,sanhe yilian computer";
 
   const defaultOgImage = `${SITE_URL}/hero-bg.jpg`;
@@ -53,7 +53,7 @@ export default function SEO({ title, description, keywords, ogImage }: SEOProps)
     // Basic meta tags
     updateMetaTag("description", finalDescription);
     updateMetaTag("keywords", finalKeywords);
-    updateMetaTag("author", language === "zh" ? "金牛区三和易联电脑经营部" : "Sanhe Yilian Computer");
+    updateMetaTag("author", language === "zh" ? "金牛区三和益联电脑经营部" : "Sanhe Yilian Computer");
     updateMetaTag("robots", "index, follow");
 
     // Open Graph tags
@@ -62,7 +62,7 @@ export default function SEO({ title, description, keywords, ogImage }: SEOProps)
     updateMetaTag("og:image", finalOgImage, true);
     updateMetaTag("og:url", window.location.href, true);
     updateMetaTag("og:type", "website", true);
-    updateMetaTag("og:site_name", language === "zh" ? "金牛区三和易联电脑经营部" : "Sanhe Yilian Computer", true);
+    updateMetaTag("og:site_name", language === "zh" ? "金牛区三和益联电脑经营部" : "Sanhe Yilian Computer", true);
 
     // Twitter Card tags
     updateMetaTag("twitter:card", "summary_large_image");
