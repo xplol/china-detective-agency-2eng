@@ -169,6 +169,14 @@ function vitePluginCopySetup(): Plugin {
         }
         console.log(`[copy-setup-dir] Copied setup/ -> dist/public/setup/`);
       }
+      // GitHub Pages has no SPA fallback: serve the app shell as 404.html so
+      // client-side routes like /pricing and /pay work on direct visits.
+      const indexHtml = path.resolve(PROJECT_ROOT, "dist/public/index.html");
+      const notFoundHtml = path.resolve(PROJECT_ROOT, "dist/public/404.html");
+      if (fs.existsSync(indexHtml)) {
+        fs.copyFileSync(indexHtml, notFoundHtml);
+        console.log(`[copy-setup-dir] Copied index.html -> 404.html for SPA fallback`);
+      }
     },
   };
 }

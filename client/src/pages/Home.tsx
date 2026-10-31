@@ -3,6 +3,7 @@
  */
 
 import { useState } from "react";
+import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -31,12 +32,14 @@ import {
   CheckCircle2,
   Globe,
   Menu,
-  X
+  X,
+  ArrowRight
 } from "lucide-react";
 
 import { useLanguage } from "@/contexts/LanguageContext";
 import SEO from "@/components/SEO";
 import StructuredData from "@/components/StructuredData";
+import SiteFooter from "@/components/SiteFooter";
 
 export default function Home() {
   const { language, setLanguage, t } = useLanguage();
@@ -99,6 +102,9 @@ export default function Home() {
                   {item.label}
                 </button>
               ))}
+              <Link href="/pricing" className="text-sm font-medium text-blue-600 hover:text-blue-500 transition-colors">
+                {t("nav.pricing")}
+              </Link>
             </div>
 
             <div className="flex items-center gap-2">
@@ -138,6 +144,13 @@ export default function Home() {
                   {item.label}
                 </button>
               ))}
+              <Link
+                href="/pricing"
+                onClick={() => setMenuOpen(false)}
+                className="text-left py-3 text-sm font-medium text-blue-600 border-b border-border/40"
+              >
+                {t("nav.pricing")}
+              </Link>
             </div>
           </div>
         )}
@@ -249,6 +262,17 @@ export default function Home() {
               <ShieldCheck className="w-4 h-4 text-blue-600" />
               {t("services.note")}
             </p>
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="mt-5 border-blue-200 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+            >
+              <Link href="/pricing">
+                {t("nav.pricing")}
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </Link>
+            </Button>
           </div>
         </div>
       </section>
@@ -423,80 +447,7 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-slate-950 text-slate-300 py-12">
-        <div className="container mx-auto px-6">
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
-            <div>
-              <div className="flex items-center gap-2.5 mb-4">
-                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center">
-                  <MonitorSmartphone className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-lg font-bold text-white">{t("footer.brand")}</span>
-              </div>
-              <p className="text-sm text-slate-400 leading-relaxed">{t("footer.description")}</p>
-            </div>
-
-            <div>
-              <h4 className="font-bold mb-4 text-white">{t("footer.links")}</h4>
-              <div className="space-y-2 text-sm">
-                {navItems.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => scrollToSection(item.id)}
-                    className="text-slate-400 hover:text-cyan-300 transition-colors text-left block"
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h4 className="font-bold mb-4 text-white">{t("footer.services")}</h4>
-              <div className="space-y-2 text-sm">
-                {["sales", "assemble", "repair", "cctv", "network", "office"].map((key) => (
-                  <button
-                    key={key}
-                    onClick={() => scrollToSection("services")}
-                    className="text-slate-400 hover:text-cyan-300 transition-colors text-left block"
-                  >
-                    {t(`services.${key}.title`)}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h4 className="font-bold mb-4 text-white">{t("footer.contact")}</h4>
-              <div className="space-y-2 text-sm text-slate-400">
-                <p className="flex items-start gap-2">
-                  <MapPinned className="w-4 h-4 mt-0.5 flex-shrink-0 text-cyan-300" />
-                  {t("footer.contact.address")}
-                </p>
-                <p className="flex items-start gap-2">
-                  <Clock className="w-4 h-4 mt-0.5 flex-shrink-0 text-cyan-300" />
-                  {t("footer.contact.hours")}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="border-t border-slate-800 pt-8 text-center text-sm text-slate-500">
-            <p>
-              {t("footer.copyright")}
-              <span className="mx-2 text-slate-700" aria-hidden="true">|</span>
-              <a
-                href="https://beian.miit.gov.cn/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-cyan-300 transition-colors"
-              >
-                {t("footer.icp")}
-              </a>
-            </p>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter home onNavigate={scrollToSection} />
     </div>
   );
 }
