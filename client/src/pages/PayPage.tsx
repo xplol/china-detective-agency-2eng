@@ -22,9 +22,13 @@ export default function PayPage() {
   const search = useSearch();
   const params = new URLSearchParams(search);
   const item = findPricingItem(params.get("item"));
-  const [orderNo] = useState(() =>
-    "SYL" + Date.now().toString(36).toUpperCase() + Math.floor(Math.random() * 1296).toString(36).toUpperCase().padStart(2, "0")
-  );
+  const paid = params.get("paid") === "1";
+  const [orderNo] = useState(() => {
+    // When Alipay redirects back (?paid=1&no=...), show the real order number
+    const urlNo = params.get("no") || "";
+    if (/^[A-Z0-9]{8,32}$/.test(urlNo)) return urlNo;
+    return "SYL" + Date.now().toString(36).toUpperCase() + Math.floor(Math.random() * 1296).toString(36).toUpperCase().padStart(2, "0");
+  });
   const VALID_UNITS = ["from", "perVisit", "perCamera"];
   const unitText = useMemo(() => {
     if (!item) return "";
@@ -32,7 +36,22 @@ export default function PayPage() {
     return VALID_UNITS.includes(key) ? t(`pricing.unit.${key}`) : "";
   }, [item, t]);
 
-  const handlePay = () => {
+  const handlePay = async () => {
+    if (!item) return;
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 5000);
+      const res = await fetch("https://pay.xplol.cn/alipay/status", { signal: ctrl.signal });
+      clearTimeout(timer);
+      const st = await res.json();
+      if (st.configured) {
+        // Hand off to the gateway, which signs and redirects to Alipay's cashier
+        window.location.href = `https://pay.xplol.cn/alipay/pay?item=${item.id}&no=${orderNo}`;
+        return;
+      }
+    } catch {
+      // gateway unreachable — fall through to the notice below
+    }
     toast(t("pay.notice.title"), {
       description: t("pay.notice.text"),
       duration: 6000
@@ -73,6 +92,19 @@ export default function PayPage() {
 
             {item ? (
               <>
+                {/* Paid-return banner (return_url lands here with ?paid=1) */}
+                {paid && (
+                  <Card className="border-green-200 bg-green-50 mb-4">
+                    <CardContent className="p-5 flex items-start gap-3">
+                      <BadgeCheck className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <h3 className="font-bold text-sm text-green-800 mb-1">{t("pay.paid.title")}</h3>
+                        <p className="text-xs text-green-700 leading-relaxed">{t("pay.paid.text")}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Order summary */}
                 <Card className="border-border/70 mb-4">
                   <CardContent className="p-6">

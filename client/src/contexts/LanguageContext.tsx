@@ -189,6 +189,8 @@ const translations = {
     "pay.notice.text": "支付宝支付接口正在接入审核中。当前可到店支付，或通过电话 / 微信联系门店完成支付与预约，给您带来不便敬请谅解。",
     "pay.invalid": "未找到对应商品，请从服务报价页重新选择。",
     "pay.back": "返回首页",
+    "pay.paid.title": "已发起支付",
+    "pay.paid.text": "已跳转支付宝完成付款。支付结果以实际到账为准，如有疑问请联系门店核对订单。",
 
     // Language switch
     "lang.switch": "EN",
@@ -371,6 +373,8 @@ const translations = {
     "pay.notice.text": "Our Alipay payment gateway is under review. For now, please pay in store or contact us by phone / WeChat to complete payment and booking. Sorry for the inconvenience.",
     "pay.invalid": "Item not found. Please choose again from the pricing page.",
     "pay.back": "Back to Home",
+    "pay.paid.title": "Payment initiated",
+    "pay.paid.text": "You have completed the payment on Alipay. The final result is subject to actual receipt; contact the store to verify your order if in doubt.",
 
     // Language switch
     "lang.switch": "中文",

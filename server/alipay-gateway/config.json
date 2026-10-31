@@ -1,0 +1,23 @@
+{
+  "port": 8787,
+  "appId": "2021007113666287",
+  "gateway": "https://openapi.alipay.com/gateway.do",
+  "privateKeyPath": "/opt/alipay-gateway/keys/app-private-key.pem",
+  "alipayPublicKeyPath": "/opt/alipay-gateway/keys/alipay-public-key.pem",
+  "notifyUrl": "https://pay.xplol.cn/alipay/notify",
+  "returnUrl": "https://pay.xplol.cn/alipay/return",
+  "siteOrigin": "https://www.xplol.cn",
+  "items": {
+    "p1": { "amount": "2899.00", "name": "家用办公台式机套餐" },
+    "p2": { "amount": "3999.00", "name": "商务轻薄笔记本" },
+    "p3": { "amount": "2299.00", "name": "网课学生笔记本" },
+    "s1": { "amount": "59.00", "name": "系统重装（Windows / macOS）" },
+    "s2": { "amount": "99.00", "name": "电脑清灰保养" },
+    "s3": { "amount": "50.00", "name": "上门检测服务" },
+    "s4": { "amount": "199.00", "name": "数据恢复" },
+    "s5": { "amount": "150.00", "name": "监控摄像头安装" },
+    "s6": { "amount": "199.00", "name": "全屋 WiFi 覆盖优化" },
+    "s7": { "amount": "199.00", "name": "DIY 装机服务" },
+    "s8": { "amount": "99.00", "name": "打印机维修" }
+  }
+}

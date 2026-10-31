@@ -1,0 +1,17 @@
+[Unit]
+Description=Alipay payment gateway for xplol.cn (Sanhe Yilian)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/alipay-gateway
+ExecStart=/usr/bin/node /opt/alipay-gateway/server.mjs
+Restart=always
+RestartSec=3
+User=alipay-gw
+Group=alipay-gw
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
